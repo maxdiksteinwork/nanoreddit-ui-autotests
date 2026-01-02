@@ -1,0 +1,64 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment variables
+.env
+.env.*
+
+# Ruff
+.ruff_cache/
+
+# Playwright
+.playwright/
+test-results/
+playwright-report/
+
+# Allure
+allure-results/
+allure-report/
+reports/allure-results/
+reports/allure-report/
+
+# Reports (keep bugs and screenshots)
+reports/screenshots/
+reports/videos/
+reports/traces/
+
+# Logs
+*.log
