@@ -61,7 +61,6 @@ async def assert_login_success(
     login_page: LoginPage,
     *,
     message: str = "Успешный вход",
-    expected_url: str = "/",
     expected_email: str | None = None,
     label: str | None = None,
 ) -> None:
@@ -71,7 +70,6 @@ async def assert_login_success(
             message=message,
             label=label or f'Ensure toast contains "{message}"',
         )
-        await login_page.should_have_url(expected_url)
         if expected_email:
             await login_page.navbar.should_be_user_nav(email=expected_email)
 

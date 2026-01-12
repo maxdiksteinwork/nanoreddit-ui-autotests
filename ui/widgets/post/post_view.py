@@ -10,60 +10,60 @@ from ui.widgets.common.author_link import AuthorLink
 
 class PostView:
     SECTION = "Post view"
-    CARD_LOCATOR = "[qa-data='post-card']"
-    TITLE_LOCATOR = ".n-card-header__main"
-    CONTENT_LOCATOR = "[qa-data='post-content']"
-    META_LOCATOR = "[qa-data='post-meta']"
-    AUTHOR_LOCATOR = "[qa-data='post-author']"
-    DATE_LOCATOR = "[qa-data='post-date']"
-    VOTE_BLOCK_LOCATOR = "[qa-data='post-vote-block']"
-    VOTE_UP_LOCATOR = "[qa-data='post-vote-up']"
-    VOTE_DOWN_LOCATOR = "[qa-data='post-vote-down']"
-    VOTE_SCORE_LOCATOR = "[qa-data='post-vote-score']"
+    CARD_TEST_ID = "post-card"
+    CONTENT_TEST_ID = "post-content"
+    META_TEST_ID = "post-meta"
+    AUTHOR_TEST_ID = "post-author"
+    DATE_TEST_ID = "post-date"
+    VOTE_BLOCK_TEST_ID = "post-vote-block"
+    VOTE_UP_TEST_ID = "post-vote-up"
+    VOTE_DOWN_TEST_ID = "post-vote-down"
+    VOTE_SCORE_TEST_ID = "post-vote-score"
 
     def __init__(self, page: Page) -> None:
-        self.container = page.locator(self.CARD_LOCATOR)
+        self.page = page
+        self.container = page.get_by_test_id(self.CARD_TEST_ID)
         self.title = Text(
             page,
-            locator=self.container.locator(self.TITLE_LOCATOR),
+            locator=self.container.get_by_role("heading").first,
             name="Post title",
             section=self.SECTION,
         )
         self.content = Text(
             page,
-            locator=self.container.locator(self.CONTENT_LOCATOR),
+            locator=self.container.get_by_test_id(self.CONTENT_TEST_ID),
             name="Post content",
             section=self.SECTION,
         )
-        self.meta = self.container.locator(self.META_LOCATOR)
+        self.meta = self.container.get_by_test_id(self.META_TEST_ID)
         self.author = AuthorLink(
             page,
-            locator=self.meta.locator(self.AUTHOR_LOCATOR),
+            locator=self.meta.get_by_test_id(self.AUTHOR_TEST_ID),
             name="Post author",
             section=self.SECTION,
         )
         self.date = Text(
             page,
-            locator=self.meta.locator(self.DATE_LOCATOR),
+            locator=self.meta.get_by_test_id(self.DATE_TEST_ID),
             name="Post date",
             section=self.SECTION,
         )
-        vote_block = self.container.locator(self.VOTE_BLOCK_LOCATOR)
+        vote_block = self.container.get_by_test_id(self.VOTE_BLOCK_TEST_ID)
         self.vote_up_button = Button(
             page,
-            locator=vote_block.locator(self.VOTE_UP_LOCATOR),
+            locator=vote_block.get_by_test_id(self.VOTE_UP_TEST_ID),
             name="Vote up",
             section=self.SECTION,
         )
         self.vote_down_button = Button(
             page,
-            locator=vote_block.locator(self.VOTE_DOWN_LOCATOR),
+            locator=vote_block.get_by_test_id(self.VOTE_DOWN_TEST_ID),
             name="Vote down",
             section=self.SECTION,
         )
         self.vote_score = Text(
             page,
-            locator=vote_block.locator(self.VOTE_SCORE_LOCATOR),
+            locator=vote_block.get_by_test_id(self.VOTE_SCORE_TEST_ID),
             name="Vote score",
             section=self.SECTION,
         )

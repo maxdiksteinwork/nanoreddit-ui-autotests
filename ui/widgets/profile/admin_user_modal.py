@@ -10,29 +10,25 @@ from ui.widgets.profile.user_profile_modal import UserProfileModal
 
 class AdminUserModal(UserProfileModal):
     SECTION = "User profile modal | Admin"
-    ADMIN_CONTROLS_LOCATOR = ".admin-controls"
-    BAN_DURATION_INPUT_LOCATOR = ".n-input-number input"
-    BAN_BUTTON_LOCATOR = "button:has-text('Забанить')"
-    UNBAN_BUTTON_LOCATOR = "button:has-text('Разбанить')"
 
     def __init__(self, page: Page) -> None:
         super().__init__(page)
-        admin_controls = self.dialog.locator(self.ADMIN_CONTROLS_LOCATOR)
+        admin_controls = self.dialog.locator(".admin-controls")
         self.ban_duration_input = Input(
             page,
-            locator=admin_controls.locator(self.BAN_DURATION_INPUT_LOCATOR),
+            locator=admin_controls.get_by_placeholder("Секунды бана"),
             name="Ban duration (seconds)",
             section=self.SECTION,
         )
         self.ban_button = Button(
             page,
-            locator=admin_controls.locator(self.BAN_BUTTON_LOCATOR),
+            locator=admin_controls.get_by_role("button", name="Забанить"),
             name="Ban user",
             section=self.SECTION,
         )
         self.unban_button = Button(
             page,
-            locator=admin_controls.locator(self.UNBAN_BUTTON_LOCATOR),
+            locator=admin_controls.get_by_role("button", name="Разбанить"),
             name="Unban user",
             section=self.SECTION,
         )

@@ -34,7 +34,7 @@ async def test_add_comment(
     post_id = db_post["id"]
 
     post_page = await home_page.navigate_to_post_by_id(post_id)
-    await post_page.should_have_url(f"/post/{post_id}")
+    await post_page.page.wait_for_url(f"**/post/{post_id}")
 
     comment_text = AddCommentDTO.random().text
     await post_page.add_comment(comment_text)

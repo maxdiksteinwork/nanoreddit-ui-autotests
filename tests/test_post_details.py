@@ -24,7 +24,7 @@ async def test_post_details_content(
         assert db_post["content"] == created_post.content
 
     post_page = await home_page.navigate_to_post_by_id(db_post["id"])
-    await post_page.should_have_url(f"/post/{db_post['id']}")
+    await post_page.page.wait_for_url(f"**/post/{db_post['id']}")
     await post_page.should_display_post(
         title=created_post.title,
         content_fragment=created_post.content,

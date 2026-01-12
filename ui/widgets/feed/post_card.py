@@ -10,12 +10,12 @@ from ui.page_factory.text import Text
 
 class PostCard:
     SECTION = "Post card"
-    LINK_LOCATOR = "[qa-data='home-post-link']"
-    TITLE_LOCATOR = "[qa-data='home-post-title']"
-    CONTENT_LOCATOR = "[qa-data='home-post-content']"
-    META_LOCATOR = "[qa-data='home-post-meta']"
-    AUTHOR_LOCATOR = "[qa-data='home-post-author']"
-    DATE_LOCATOR = "[qa-data='home-post-date']"
+    LINK_TEST_ID = "home-post-link"
+    TITLE_TEST_ID = "home-post-title"
+    CONTENT_TEST_ID = "home-post-content"
+    META_TEST_ID = "home-post-meta"
+    AUTHOR_TEST_ID = "home-post-author"
+    DATE_TEST_ID = "home-post-date"
 
     def __init__(self, page: Page, *, locator: Locator, label: str) -> None:
         self.label = label
@@ -28,37 +28,37 @@ class PostCard:
         )
         self.link = Link(
             page,
-            locator=locator.locator(self.LINK_LOCATOR),
+            locator=locator.get_by_test_id(self.LINK_TEST_ID),
             name="Post link",
             section=section,
         )
         self.title = Text(
             page,
-            locator=locator.locator(self.TITLE_LOCATOR),
+            locator=locator.get_by_test_id(self.TITLE_TEST_ID),
             name="Title",
             section=section,
         )
         self.content = Text(
             page,
-            locator=locator.locator(self.CONTENT_LOCATOR),
+            locator=locator.get_by_test_id(self.CONTENT_TEST_ID),
             name="Content preview",
             section=section,
         )
         self.meta = Text(
             page,
-            locator=locator.locator(self.META_LOCATOR),
+            locator=locator.get_by_test_id(self.META_TEST_ID),
             name="Meta block",
             section=section,
         )
         self.author = Text(
             page,
-            locator=locator.locator(self.AUTHOR_LOCATOR),
+            locator=locator.get_by_test_id(self.AUTHOR_TEST_ID),
             name="Author",
             section=section,
         )
         self.date = Text(
             page,
-            locator=locator.locator(self.DATE_LOCATOR),
+            locator=locator.get_by_test_id(self.DATE_TEST_ID),
             name="Publish date",
             section=section,
         )

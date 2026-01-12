@@ -7,27 +7,27 @@ from ui.page_factory.input import Input
 
 class LoginForm:
     SECTION = "Login form"
-    EMAIL_INPUT_LOCATOR = "[qa-data='login-email-input'] input"
-    PASSWORD_INPUT_LOCATOR = "[qa-data='login-password-input'] input"
-    SUBMIT_BUTTON_LOCATOR = "[qa-data='login-submit-btn']"
-    PASSWORD_INPUT_CONTAINER_LOCATOR = "[qa-data='login-password-input']"
+    EMAIL_INPUT_TEST_ID = "login-email-input"
+    PASSWORD_INPUT_TEST_ID = "login-password-input"
+    SUBMIT_BUTTON_TEST_ID = "login-submit-btn"
 
     def __init__(self, page: Page) -> None:
+        self.page = page
         self.email_input = Input(
             page,
-            locator=self.EMAIL_INPUT_LOCATOR,
+            locator=page.get_by_test_id(self.EMAIL_INPUT_TEST_ID).locator("input"),
             name="Email",
             section=self.SECTION,
         )
         self.password_input = Input(
             page,
-            locator=self.PASSWORD_INPUT_LOCATOR,
+            locator=page.get_by_test_id(self.PASSWORD_INPUT_TEST_ID).locator("input"),
             name="Password",
             section=self.SECTION,
         )
         self.submit_button = Button(
             page,
-            locator=self.SUBMIT_BUTTON_LOCATOR,
+            locator=page.get_by_test_id(self.SUBMIT_BUTTON_TEST_ID),
             name="Submit login",
             section=self.SECTION,
         )

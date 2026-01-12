@@ -10,28 +10,29 @@ from ui.page_factory.textarea import Textarea
 
 class CreatePostForm:
     SECTION = "Create post form"
-    FORM_LOCATOR = "[qa-data='create-post-form']"
-    TITLE_INPUT_LOCATOR = "[qa-data='create-post-title-input'] input"
-    CONTENT_INPUT_LOCATOR = "[qa-data='create-post-content-input'] textarea"
-    SUBMIT_BUTTON_LOCATOR = "[qa-data='create-post-submit-btn']"
+    FORM_TEST_ID = "create-post-form"
+    TITLE_INPUT_TEST_ID = "create-post-title-input"
+    CONTENT_INPUT_TEST_ID = "create-post-content-input"
+    SUBMIT_BUTTON_TEST_ID = "create-post-submit-btn"
 
     def __init__(self, page: Page) -> None:
-        self.form = page.locator(self.FORM_LOCATOR)
+        self.page = page
+        self.form = page.get_by_test_id(self.FORM_TEST_ID)
         self.title_input = Input(
             page,
-            locator=self.form.locator(self.TITLE_INPUT_LOCATOR),
+            locator=self.form.get_by_test_id(self.TITLE_INPUT_TEST_ID).locator("input"),
             name="Post title",
             section=self.SECTION,
         )
         self.content_input = Textarea(
             page,
-            locator=self.form.locator(self.CONTENT_INPUT_LOCATOR),
+            locator=self.form.get_by_test_id(self.CONTENT_INPUT_TEST_ID).locator("textarea"),
             name="Post content",
             section=self.SECTION,
         )
         self.submit_button = Button(
             page,
-            locator=self.form.locator(self.SUBMIT_BUTTON_LOCATOR),
+            locator=self.form.get_by_test_id(self.SUBMIT_BUTTON_TEST_ID),
             name="Submit new post",
             section=self.SECTION,
         )

@@ -24,6 +24,7 @@ from utils.clients.sql_client import SQLClient
 @pytest_asyncio.fixture(scope="session")
 async def session_playwright_instance() -> AsyncGenerator[Playwright, Any]:
     async with async_playwright() as playwright:
+        playwright.selectors.set_test_id_attribute("qa-data")
         yield playwright
 
 
@@ -41,12 +42,12 @@ async def session_browser(
         await browser.close()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def context(
     session_browser: Browser,
 ) -> AsyncGenerator[BrowserContext, Any]:
     settings = get_settings()
-    ctx = await session_browser.new_context()  # глянуть нужно ли передавать base url
+    ctx = await session_browser.new_context()
     ctx.set_default_timeout(settings.default_timeout_ms)
     try:
         yield ctx
@@ -54,7 +55,7 @@ async def context(
         await ctx.close()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def page(context: BrowserContext) -> AsyncGenerator[Page, Any]:
     new_page = await context.new_page()
     console_messages: List[str] = []
@@ -71,7 +72,7 @@ async def page(context: BrowserContext) -> AsyncGenerator[Page, Any]:
         console_messages.append(f"[{msg.type.upper()}] {msg.text}{location_suffix}")
 
     new_page.on("console", _handle_console)
-    setattr(new_page, "_console_logs", console_messages)
+    new_page._console_logs = console_messages
 
     try:
         yield new_page
@@ -120,7 +121,7 @@ def pytest_runtest_makereport(item):
     setattr(item, f"rep_{rep.when}", rep)
 
 
-@pytest.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 async def capture_artifacts(request, page: Page):
     """
     если тест провалился на стадии call, делает полноэкранный скриншот и прикрепляет

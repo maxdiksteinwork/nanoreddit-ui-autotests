@@ -21,6 +21,9 @@ class LoginPage(BasePage):
     async def login(self, *, email: str, password: str) -> None:
         with allure.step(f"Attempting to log in as {email}"):
             await self.form.login(email=email, password=password)
+            await self.page.wait_for_url(
+            lambda url: url.endswith("/") and "/login" not in url
+        )
 
     async def login_user_model(self, user: LoginUserDTO) -> None:
         await self.login(email=user.email, password=user.password)

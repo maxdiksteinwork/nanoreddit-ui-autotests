@@ -7,16 +7,15 @@ from ui.widgets.feed.post_card import PostCard
 
 
 class PostList:
-    LIST_LOCATOR = "[qa-data='home-post-list']"
-    CARD_LOCATOR = "[qa-data='home-post-item']"
-    EMPTY_FEED_LOCATOR = "[qa-data='home-empty-posts']"
-    EMPTY_FEED_TEXT_LOCATOR = f"{EMPTY_FEED_LOCATOR} .n-empty__description"
-    FEED_CARD_WRAPPER = "[qa-data='home-posts-card']"
+    LIST_TEST_ID = "home-post-list"
+    CARD_TEST_ID = "home-post-item"
+    EMPTY_FEED_TEST_ID = "home-empty-posts"
+    FEED_CARD_WRAPPER_TEST_ID = "home-posts-card"
 
     def __init__(self, page: Page) -> None:
         self.page = page
-        self._cards_list = page.locator(self.LIST_LOCATOR)
-        self._cards = page.locator(self.CARD_LOCATOR)
+        self._cards_list = page.get_by_test_id(self.LIST_TEST_ID)
+        self._cards = page.get_by_test_id(self.CARD_TEST_ID)
 
     async def should_be_visible(self) -> None:
         with allure.step("Ensure feed list container is visible"):
@@ -59,8 +58,8 @@ class PostList:
         self, *, expected_message: str = "Пока нет постов"
     ) -> None:
         with allure.step("Ensure empty feed state is shown"):
-            await expect(self.page.locator(self.FEED_CARD_WRAPPER)).to_be_visible()
+            await expect(self.page.get_by_test_id(self.FEED_CARD_WRAPPER_TEST_ID)).to_be_visible()
             await expect(self._cards).to_have_count(0)
             await expect(
-                self.page.locator(self.EMPTY_FEED_TEXT_LOCATOR)
+                self.page.get_by_test_id(self.EMPTY_FEED_TEST_ID).locator(".n-empty__description")
             ).to_contain_text(expected_message)

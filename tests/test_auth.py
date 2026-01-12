@@ -49,12 +49,13 @@ def _password_with_length(length: int) -> str:
 
 
 async def _assert_password_visibility_toggle(
-        page, container_selector: str, *, step_name: str | None = None
+        page, test_id: str, *, step_name: str | None = None
 ) -> None:
     step_name = step_name or "Verify password visibility toggle"
     with allure.step(step_name):
-        password_input = page.locator(f"{container_selector} input")
-        eye_toggle = page.locator(f"{container_selector} .n-input__eye").first
+        container = page.get_by_test_id(test_id)
+        password_input = container.locator("input")
+        eye_toggle = container.locator(".n-input__eye").first
         await expect(password_input).to_have_attribute("type", "password")
         await expect(eye_toggle).to_be_visible()
         await eye_toggle.click()
@@ -356,9 +357,9 @@ async def test_register_with_invalid_passwords(register_page, invalid_password):
 @allure.severity(allure.severity_level.CRITICAL)
 async def test_login_with_wrong_password(login_page, user_api_created: RegisterUserDTO):
     await login_page.open()
-    await login_page.login_user_model(
-        LoginUserDTO(email=user_api_created.email, password=fake_password())
-    )
+    await login_page.form.fill_email(user_api_created.email)
+    await login_page.form.fill_password(fake_password())
+    await login_page.form.submit()
     await assert_login_error(login_page)
 
 
@@ -367,9 +368,9 @@ async def test_login_with_wrong_password(login_page, user_api_created: RegisterU
 @allure.severity(allure.severity_level.NORMAL)
 async def test_login_with_nonexistent_email(login_page):
     await login_page.open()
-    await login_page.login_user_model(
-        LoginUserDTO(email=fake_email(), password=fake_password())
-    )
+    await login_page.form.fill_email(fake_email())
+    await login_page.form.fill_password(fake_password())
+    await login_page.form.submit()
     await assert_login_error(login_page)
 
 
@@ -413,12 +414,12 @@ async def test_register_password_visibility_toggle(register_page):
 
     await _assert_password_visibility_toggle(
         register_page.page,
-        register_page.form.PASSWORD_INPUT_CONTAINER_LOCATOR,
+        register_page.form.PASSWORD_INPUT_TEST_ID,
         step_name="Verify password field visibility toggle",
     )
     await _assert_password_visibility_toggle(
         register_page.page,
-        register_page.form.PASSWORD_CONFIRM_INPUT_CONTAINER_LOCATOR,
+        register_page.form.PASSWORD_CONFIRM_INPUT_TEST_ID,
         step_name="Verify password confirmation field visibility toggle",
     )
 
@@ -432,7 +433,7 @@ async def test_login_password_visibility_toggle(login_page):
 
     await _assert_password_visibility_toggle(
         login_page.page,
-        login_page.form.PASSWORD_INPUT_CONTAINER_LOCATOR,
+        login_page.form.PASSWORD_INPUT_TEST_ID,
         step_name="Verify password field visibility toggle",
     )
 

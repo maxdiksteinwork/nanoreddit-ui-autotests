@@ -13,15 +13,15 @@ from ui.widgets.common.author_link import AuthorLink
 
 class CommentsSection:
     SECTION = "Post comments"
-    CARD_LOCATOR = "[qa-data='post-comments-card']"
-    LIST_LOCATOR = "[qa-data='post-comments-list']"
-    ITEM_LOCATOR = "[qa-data='post-comment-item']"
+    CARD_TEST_ID = "post-comments-card"
+    LIST_TEST_ID = "post-comments-list"
+    ITEM_TEST_ID = "post-comment-item"
 
     def __init__(self, page: Page) -> None:
         self.page = page
-        self.container = self.page.locator(self.CARD_LOCATOR)
-        self.list = self.container.locator(self.LIST_LOCATOR)
-        self.items = self.list.locator(self.ITEM_LOCATOR)
+        self.container = self.page.get_by_test_id(self.CARD_TEST_ID)
+        self.list = self.container.get_by_test_id(self.LIST_TEST_ID)
+        self.items = self.list.get_by_test_id(self.ITEM_TEST_ID)
         self.form = CommentForm(page)
 
     async def should_be_visible(self) -> None:
@@ -53,21 +53,22 @@ class CommentsSection:
 
 class CommentForm:
     SECTION = "Post comments | Form"
-    CONTAINER_LOCATOR = "[qa-data='post-comment-form']"
-    TEXTAREA_LOCATOR = "[qa-data='post-comment-input'] textarea"
-    SUBMIT_BUTTON_LOCATOR = "[qa-data='post-comment-submit-btn']"
+    CONTAINER_TEST_ID = "post-comment-form"
+    TEXTAREA_TEST_ID = "post-comment-input"
+    SUBMIT_BUTTON_TEST_ID = "post-comment-submit-btn"
 
     def __init__(self, page: Page) -> None:
-        self.container = page.locator(self.CONTAINER_LOCATOR)
+        self.page = page
+        self.container = page.get_by_test_id(self.CONTAINER_TEST_ID)
         self.textarea = Textarea(
             page,
-            locator=self.container.locator(self.TEXTAREA_LOCATOR),
+            locator=self.container.get_by_test_id(self.TEXTAREA_TEST_ID).locator("textarea"),
             name="Comment textarea",
             section=self.SECTION,
         )
         self.submit_button = Button(
             page,
-            locator=self.container.locator(self.SUBMIT_BUTTON_LOCATOR),
+            locator=self.container.get_by_test_id(self.SUBMIT_BUTTON_TEST_ID),
             name="Submit comment",
             section=self.SECTION,
         )
@@ -89,48 +90,48 @@ class CommentForm:
 
 class CommentItem:
     SECTION = "Post comments | Comment"
-    AUTHOR_LOCATOR = "[qa-data='comment-author']"
-    TEXT_LOCATOR = "[qa-data='comment-text']"
-    REPLY_BUTTON_LOCATOR = "[qa-data='comment-reply-btn']"
-    REPLY_INPUT_LOCATOR = "[qa-data='comment-reply-input'] textarea"
-    REPLY_SUBMIT_BUTTON_LOCATOR = "[qa-data='comment-reply-submit-btn']"
-    REPLIES_LIST_LOCATOR = "[qa-data='comment-replies-list']"
-    REPLY_CARD_LOCATOR = "[qa-data='comment-card']"
+    AUTHOR_TEST_ID = "comment-author"
+    TEXT_TEST_ID = "comment-text"
+    REPLY_BUTTON_TEST_ID = "comment-reply-btn"
+    REPLY_INPUT_TEST_ID = "comment-reply-input"
+    REPLY_SUBMIT_BUTTON_TEST_ID = "comment-reply-submit-btn"
+    REPLIES_LIST_TEST_ID = "comment-replies-list"
+    REPLY_CARD_TEST_ID = "comment-card"
 
     def __init__(self, page: Page, *, locator: Locator, label: str) -> None:
         self.page = page
         section = f"{self.SECTION} ({label})"
         self.author = AuthorLink(
             page,
-            locator=locator.locator(self.AUTHOR_LOCATOR),
+            locator=locator.get_by_test_id(self.AUTHOR_TEST_ID),
             name="Comment author",
             section=section,
         )
         self.text = Text(
             page,
-            locator=locator.locator(self.TEXT_LOCATOR),
+            locator=locator.get_by_test_id(self.TEXT_TEST_ID),
             name="Comment text",
             section=section,
         )
         self.reply_button = Button(
             page,
-            locator=locator.locator(self.REPLY_BUTTON_LOCATOR),
+            locator=locator.get_by_test_id(self.REPLY_BUTTON_TEST_ID),
             name="Reply button",
             section=section,
         )
         self.reply_textarea = Textarea(
             page,
-            locator=locator.locator(self.REPLY_INPUT_LOCATOR),
+            locator=locator.get_by_test_id(self.REPLY_INPUT_TEST_ID).locator("textarea"),
             name="Reply textarea",
             section=section,
         )
         self.reply_submit = Button(
             page,
-            locator=locator.locator(self.REPLY_SUBMIT_BUTTON_LOCATOR),
+            locator=locator.get_by_test_id(self.REPLY_SUBMIT_BUTTON_TEST_ID),
             name="Reply submit button",
             section=section,
         )
-        self.replies_container = locator.locator(self.REPLIES_LIST_LOCATOR)
+        self.replies_container = locator.get_by_test_id(self.REPLIES_LIST_TEST_ID)
 
     async def should_contain_text(self, expected: str) -> None:
         await self.text.should_contain_text(expected)
@@ -150,7 +151,7 @@ class CommentItem:
             await self.reply_submit.click()
 
     async def replies(self) -> List["CommentItem"]:
-        reply_cards = self.replies_container.locator(self.REPLY_CARD_LOCATOR)
+        reply_cards = self.replies_container.get_by_test_id(self.REPLY_CARD_TEST_ID)
         count = await reply_cards.count()
         items: List[CommentItem] = []
         for idx in range(count):
@@ -169,7 +170,7 @@ class CommentItem:
         with allure.step(
             f"Check reply with text '{expected[:50]}{'...' if len(expected) > 50 else ''}'"
         ):
-            reply_cards = self.replies_container.locator(self.REPLY_CARD_LOCATOR)
+            reply_cards = self.replies_container.get_by_test_id(self.REPLY_CARD_TEST_ID)
             await expect(reply_cards).to_have_count(1, timeout=timeout)
             replies = await self.replies()
             for reply in replies:

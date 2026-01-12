@@ -27,6 +27,7 @@ async def test_create_post(
     payload = PublishPostDTO.random()
 
     await create_post_page.open()
+    await create_post_page.page.wait_for_timeout(5000)
     await create_post_page.create_post_model(payload)
     await assert_post_creation_success(page)
 

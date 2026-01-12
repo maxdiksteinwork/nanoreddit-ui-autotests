@@ -10,17 +10,15 @@ from ui.page_factory.text import Text
 class UserProfileModal:
     SECTION = "User profile modal"
     TITLE = "Информация о пользователе"
-    DIALOG_LOCATOR = ".n-card.n-modal"
-    CLOSE_BUTTON_LOCATOR = ".n-card-header__extra button"
     FIELD_LOCATOR = "p"
 
     def __init__(self, page: Page) -> None:
         self.dialog = (
-            page.locator(self.DIALOG_LOCATOR).filter(has_text=self.TITLE).first
+            page.get_by_role("dialog").filter(has_text=self.TITLE).first
         )
         self.close_button = Button(
             page,
-            locator=self.dialog.locator(self.CLOSE_BUTTON_LOCATOR).first,
+            locator=self.dialog.get_by_role("button").first,
             name="Close profile modal",
             section=self.SECTION,
         )

@@ -7,46 +7,42 @@ from ui.page_factory.input import Input
 
 class RegisterForm:
     SECTION = "Register form"
-    EMAIL_INPUT_LOCATOR = "[qa-data='register-email-input'] input"
-    USERNAME_INPUT_LOCATOR = "[qa-data='register-username-input'] input"
-    PASSWORD_INPUT_LOCATOR = "[qa-data='register-password-input'] input"
-    PASSWORD_CONFIRM_INPUT_LOCATOR = "[qa-data='register-password-confirm-input'] input"
-    SUBMIT_BUTTON_LOCATOR = "[qa-data='register-submit-btn']"
+    EMAIL_INPUT_TEST_ID = "register-email-input"
+    USERNAME_INPUT_TEST_ID = "register-username-input"
+    PASSWORD_INPUT_TEST_ID = "register-password-input"
+    PASSWORD_CONFIRM_INPUT_TEST_ID = "register-password-confirm-input"
+    SUBMIT_BUTTON_TEST_ID = "register-submit-btn"
     FEEDBACK_LOCATOR = ".n-form-item-feedback"
-    PASSWORD_INPUT_CONTAINER_LOCATOR = "[qa-data='register-password-input']"
-    PASSWORD_CONFIRM_INPUT_CONTAINER_LOCATOR = (
-        "[qa-data='register-password-confirm-input']"
-    )
 
     def __init__(self, page: Page) -> None:
         self.page = page
         self.email_input = Input(
             page,
-            locator=self.EMAIL_INPUT_LOCATOR,
+            locator=page.get_by_test_id(self.EMAIL_INPUT_TEST_ID).locator("input"),
             name="Email",
             section=self.SECTION,
         )
         self.username_input = Input(
             page,
-            locator=self.USERNAME_INPUT_LOCATOR,
+            locator=page.get_by_test_id(self.USERNAME_INPUT_TEST_ID).locator("input"),
             name="Username",
             section=self.SECTION,
         )
         self.password_input = Input(
             page,
-            locator=self.PASSWORD_INPUT_LOCATOR,
+            locator=page.get_by_test_id(self.PASSWORD_INPUT_TEST_ID).locator("input"),
             name="Password",
             section=self.SECTION,
         )
         self.password_confirm_input = Input(
             page,
-            locator=self.PASSWORD_CONFIRM_INPUT_LOCATOR,
+            locator=page.get_by_test_id(self.PASSWORD_CONFIRM_INPUT_TEST_ID).locator("input"),
             name="Password confirmation",
             section=self.SECTION,
         )
         self.submit_button = Button(
             page,
-            locator=self.SUBMIT_BUTTON_LOCATOR,
+            locator=page.get_by_test_id(self.SUBMIT_BUTTON_TEST_ID),
             name="Submit registration",
             section=self.SECTION,
         )

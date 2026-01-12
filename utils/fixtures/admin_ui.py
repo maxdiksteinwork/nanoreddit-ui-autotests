@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+import pytest_asyncio
 
 from models.auth_dto import LoginUserDTO, RegisterUserDTO
 from ui.pages.post_page import PostPage
@@ -50,11 +51,10 @@ def banned_user_api_created(session_api_client, admin_api_created) -> LoginUserD
     return LoginUserDTO.from_register(user)
 
 
-@pytest.fixture
-async def admin_api_created_ui_authorized(login_page, home_page, admin_api_created):
+@pytest_asyncio.fixture
+async def admin_api_created_ui_authorized(login_page, admin_api_created):
     await login_page.open()
     await login_page.login_user_model(LoginUserDTO.from_register(admin_api_created))
-    await home_page.navbar.should_be_user_nav(email=admin_api_created.email)
     return admin_api_created
 
 
@@ -79,7 +79,6 @@ def open_author_modal():
     async def _open(post_page: PostPage) -> AdminUserModal:
         await post_page.post.author.open_profile()
         modal = AdminUserModal(post_page.page)
-        await modal.should_be_visible()
         return modal
 
     return _open

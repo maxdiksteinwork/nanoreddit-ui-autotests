@@ -8,62 +8,57 @@ from ui.widgets.profile.user_profile_modal import UserProfileModal
 
 class Navbar:
     SECTION = "Navbar"
-    LOGO_LOCATOR = "[qa-data='navbar-logo']"
-    HOME_LINK_LOCATOR = "role=menuitem[name='Главная']"
-    LOGIN_LINK_LOCATOR = "role=menuitem[name='Войти']"
-    REGISTER_LINK_LOCATOR = "role=menuitem[name='Регистрация']"
-    CREATE_POST_LINK_LOCATOR = "role=menuitem[name='Создать пост']"
-    THEME_SWITCH_LOCATOR = "nav .navbar-right [role='switch']"
-    LOGOUT_BUTTON_LOCATOR = "role=button[name='Выйти']"
-    USER_EMAIL_LINK_LOCATOR = "[qa-data='navbar-user-info']"
+    LOGO_TEST_ID = "navbar-logo"
+    USER_EMAIL_LINK_TEST_ID = "navbar-user-info"
+    LOGOUT_BUTTON_TEST_ID = "navbar-logout-btn"
 
     def __init__(self, page: Page) -> None:
         self.page = page
         self.logo = Link(
             page,
-            locator=self.LOGO_LOCATOR,
+            locator=page.get_by_test_id(self.LOGO_TEST_ID),
             name="Logo",
             section=self.SECTION,
         )
         self.home_link = Link(
             page,
-            locator=self.HOME_LINK_LOCATOR,
+            locator=page.get_by_role("menuitem", name="Главная"),
             name="Главная",
             section=self.SECTION,
         )
         self.login_link = Link(
             page,
-            locator=self.LOGIN_LINK_LOCATOR,
+            locator=page.get_by_role("menuitem", name="Войти"),
             name="Войти",
             section=self.SECTION,
         )
         self.register_link = Link(
             page,
-            locator=self.REGISTER_LINK_LOCATOR,
+            locator=page.get_by_role("menuitem", name="Регистрация"),
             name="Регистрация",
             section=self.SECTION,
         )
         self.create_post_link = Link(
             page,
-            locator=self.CREATE_POST_LINK_LOCATOR,
+            locator=page.get_by_role("menuitem", name="Создать пост"),
             name="Создать пост",
             section=self.SECTION,
         )
         self.theme_switch = Button(
             page,
-            locator=self.THEME_SWITCH_LOCATOR,
+            locator=page.locator(".navbar-right").get_by_role("switch"),
             name="Theme switch",
             section=self.SECTION,
         )
         self.logout_button = Button(
             page,
-            locator=self.LOGOUT_BUTTON_LOCATOR,
+            locator=page.get_by_test_id(self.LOGOUT_BUTTON_TEST_ID),
             name="Logout",
             section=self.SECTION,
         )
         self.user_email_link = Link(
             page,
-            locator=self.USER_EMAIL_LINK_LOCATOR,
+            locator=page.get_by_test_id(self.USER_EMAIL_LINK_TEST_ID),
             name="User email",
             section=self.SECTION,
         )
