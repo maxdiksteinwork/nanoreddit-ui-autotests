@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import pytest
-import pytest_asyncio
 
-from models.auth_dto import LoginUserDTO, RegisterUserDTO
+from models.auth_dto import RegisterUserDTO
 from ui.pages.post_page import PostPage
 from ui.widgets.profile.admin_user_modal import AdminUserModal
 
@@ -48,13 +47,6 @@ def banned_user_api_created(session_api_client, admin_api_created) -> RegisterUs
     )
     session_api_client.ban_user(email=user.email, seconds=3600, token=token)
     return user
-
-
-@pytest_asyncio.fixture
-async def admin_api_created_ui_authorized(login_page, admin_api_created):
-    await login_page.open()
-    await login_page.login_user_model(LoginUserDTO.from_register(admin_api_created))
-    return admin_api_created
 
 
 @pytest.fixture
