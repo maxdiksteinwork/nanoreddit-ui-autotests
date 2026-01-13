@@ -3,7 +3,6 @@ import asyncio
 import allure
 from playwright.async_api import expect
 
-from ui.widgets.navigation.navbar import Navbar
 from utils.database.database_helpers import fetch_single_user
 
 # ----------- позитивные тесты -----------
@@ -13,10 +12,10 @@ from utils.database.database_helpers import fetch_single_user
 @allure.story("Display user info")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_profile_modal_shows_user(
-    user_api_created_ui_authorized, session_sql_client, page
+    user_api_created, session_sql_client, authenticated_home_page
 ):
-    user = user_api_created_ui_authorized
-    navbar = Navbar(page)
+    user = user_api_created
+    await authenticated_home_page.open()
 
     with allure.step("Fetch user data from database"):
         db_user = await asyncio.to_thread(
@@ -26,7 +25,7 @@ async def test_profile_modal_shows_user(
             columns="id::text, email, username, role",
         )
 
-    modal = await navbar.open_profile()
+    modal = await authenticated_home_page.navbar.open_profile()
 
     with allure.step("Verify all user information is displayed correctly"):
         await modal.should_show_email(db_user["email"])
@@ -38,25 +37,25 @@ async def test_profile_modal_shows_user(
 @allure.feature("Profile modal")
 @allure.story("Close interaction")
 @allure.severity(allure.severity_level.MINOR)
-async def test_profile_modal_closes(user_api_created_ui_authorized, page):
-    user = user_api_created_ui_authorized
-    navbar = Navbar(page)
+async def test_profile_modal_closes(user_api_created, authenticated_home_page):
+    user = user_api_created
+    await authenticated_home_page.open()
 
-    modal = await navbar.open_profile()
+    modal = await authenticated_home_page.navbar.open_profile()
 
     with allure.step("Close modal using close button"):
         await modal.close()
         await expect(modal.dialog).to_be_hidden()
-        await navbar.should_be_user_nav(email=user.email)
+        await authenticated_home_page.navbar.should_be_user_nav(email=user.email)
 
     with allure.step("Reopen modal and close by clicking overlay"):
-        modal = await navbar.open_profile()
-        await page.mouse.click(5, 5)
+        modal = await authenticated_home_page.navbar.open_profile()
+        await authenticated_home_page.page.mouse.click(5, 5)
         await expect(modal.dialog).to_be_hidden()
-        await navbar.should_be_user_nav(email=user.email)
+        await authenticated_home_page.navbar.should_be_user_nav(email=user.email)
 
     with allure.step("Reopen modal and close using 'Space' key"):
-        modal = await navbar.open_profile()
-        await page.keyboard.press("Space")
+        modal = await authenticated_home_page.navbar.open_profile()
+        await authenticated_home_page.page.keyboard.press("Space")
         await expect(modal.dialog).to_be_hidden()
-        await navbar.should_be_user_nav(email=user.email)
+        await authenticated_home_page.navbar.should_be_user_nav(email=user.email)

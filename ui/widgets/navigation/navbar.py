@@ -92,9 +92,7 @@ class Navbar:
             await self.logout_button.should_be_visible()
             await self.user_email_link.should_be_visible()
             if email:
-                with self.user_email_link._action_step(
-                    f'Assert link contains "{email}"'
-                ):
+                with self.user_email_link._action_step(f'Assert link contains "{email}"'):
                     locator = self.user_email_link.get_locator()
                     await expect(locator).to_contain_text(email)
 

@@ -90,6 +90,4 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         f.write(f"Test\\ Env={os.environ.get('TEST_ENV', 'local')}\n")
         f.write(f"Build\\ ID={os.environ.get('CI_PIPELINE_ID', 'manual')}\n")
 
-    print(
-        f"\n[ALLURE] environment.properties generated at: {os.path.abspath(env_file)}"
-    )
+    print(f"\n[ALLURE] environment.properties generated at: {os.path.abspath(env_file)}")

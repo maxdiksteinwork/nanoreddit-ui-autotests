@@ -28,9 +28,7 @@ class PostList:
         await self.should_be_visible()
         with allure.step(f"Ensure feed has at least {count} posts"):
             actual = await self._cards.count()
-            assert actual >= count, (
-                f"Feed list contains {actual} posts, expected at least {count}"
-            )
+            assert actual >= count, f"Feed list contains {actual} posts, expected at least {count}"
 
     async def get_card_by_index(self, index: int = 0) -> PostCard:
         await self.should_be_visible()
@@ -38,9 +36,7 @@ class PostList:
         if total == 0:
             raise AssertionError("Feed list is empty, cannot fetch a card")
         if index < 0 or index >= total:
-            raise IndexError(
-                f"Feed card index {index} is out of range (total: {total})"
-            )
+            raise IndexError(f"Feed card index {index} is out of range (total: {total})")
 
         locator = self._cards.nth(index)
         with allure.step(f"Get post card by index {index}"):
@@ -54,9 +50,7 @@ class PostList:
             await expect(locator).to_be_visible()
         return PostCard(self.page, locator=locator, label=title)
 
-    async def should_show_empty_state(
-        self, *, expected_message: str = "Пока нет постов"
-    ) -> None:
+    async def should_show_empty_state(self, *, expected_message: str = "Пока нет постов") -> None:
         with allure.step("Ensure empty feed state is shown"):
             await expect(self.page.get_by_test_id(self.FEED_CARD_WRAPPER_TEST_ID)).to_be_visible()
             await expect(self._cards).to_have_count(0)

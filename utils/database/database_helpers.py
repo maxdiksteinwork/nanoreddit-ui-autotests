@@ -8,11 +8,11 @@ FAST_POLL_INTERVAL = 0.1
 
 
 async def _wait_for_condition(
-        check_func: Callable[[], Awaitable[Any]],
-        *,
-        timeout: float,
-        poll_interval: float = DEFAULT_POLL_INTERVAL,
-        error_message: str,
+    check_func: Callable[[], Awaitable[Any]],
+    *,
+    timeout: float,
+    poll_interval: float = DEFAULT_POLL_INTERVAL,
+    error_message: str,
 ) -> Any:
     deadline = asyncio.get_running_loop().time() + timeout
     while True:
@@ -26,9 +26,9 @@ async def _wait_for_condition(
 
 
 def _build_comment_conditions(
-        post_id: str,
-        text: str,
-        parent_comment_id: Optional[str] = None,
+    post_id: str,
+    text: str,
+    parent_comment_id: Optional[str] = None,
 ) -> tuple[list[str], list[str]]:
     conditions = ["post_id::text = %s", "text = %s"]
     params: list[str] = [post_id, text]
@@ -41,11 +41,11 @@ def _build_comment_conditions(
 
 
 def fetch_single_user(
-        sql_client,
-        email: str,
-        *,
-        columns: Optional[str] = None,
-        error_message: Optional[str] = None,
+    sql_client,
+    email: str,
+    *,
+    columns: Optional[str] = None,
+    error_message: Optional[str] = None,
 ) -> Dict[str, Any]:
     with allure.step(f"Fetch single user by email '{email}' from DB"):
         rows = get_user_by_email(sql_client, email, columns=columns)
@@ -56,10 +56,10 @@ def fetch_single_user(
 
 
 def get_table_count(
-        sql_client,
-        table_name: str,
-        where_clause: Optional[str] = None,
-        params: Optional[tuple] = None,
+    sql_client,
+    table_name: str,
+    where_clause: Optional[str] = None,
+    params: Optional[tuple] = None,
 ) -> int:
     step_name = f"Get count from table '{table_name}'"
     if where_clause:
@@ -82,9 +82,9 @@ def get_table_count(
 
 
 async def clear_all_posts(
-        sql_client,
-        *,
-        timeout: float = 2.0,
+    sql_client,
+    *,
+    timeout: float = 2.0,
 ) -> None:
     with allure.step("Delete all posts, comments, and votes from DB"):
         await asyncio.to_thread(sql_client.execute, "DELETE FROM votes")
@@ -95,9 +95,7 @@ async def clear_all_posts(
         deadline = asyncio.get_running_loop().time() + timeout
         while True:
             posts_count = await asyncio.to_thread(get_table_count, sql_client, "posts")
-            comments_count = await asyncio.to_thread(
-                get_table_count, sql_client, "comments"
-            )
+            comments_count = await asyncio.to_thread(get_table_count, sql_client, "comments")
             votes_count = await asyncio.to_thread(get_table_count, sql_client, "votes")
 
             if posts_count == 0 and comments_count == 0 and votes_count == 0:
@@ -112,8 +110,8 @@ async def clear_all_posts(
 
 
 async def delete_user_by_email(
-        sql_client,
-        email: str,
+    sql_client,
+    email: str,
 ) -> None:
     with allure.step(f"Delete user with email '{email}' from DB"):
         await asyncio.to_thread(
@@ -124,14 +122,12 @@ async def delete_user_by_email(
 
 
 async def delete_post_by_title_and_author(
-        sql_client,
-        *,
-        title: str,
-        author_email: str,
+    sql_client,
+    *,
+    title: str,
+    author_email: str,
 ) -> None:
-    with allure.step(
-            f"Delete post with title '{title}' by author '{author_email}' from DB"
-    ):
+    with allure.step(f"Delete post with title '{title}' by author '{author_email}' from DB"):
         await asyncio.to_thread(
             sql_client.execute,
             """
@@ -146,18 +142,16 @@ async def delete_post_by_title_and_author(
 def get_user_by_email(sql_client, email: str, columns: Optional[str] = None):
     with allure.step(f"Get user by email '{email}' from DB"):
         columns = columns or "id, username, email, banned_until, role"
-        rows = sql_client.query(
-            f"SELECT {columns} FROM users WHERE email = %s", (email,)
-        )
+        rows = sql_client.query(f"SELECT {columns} FROM users WHERE email = %s", (email,))
         return rows
 
 
 def get_post_by_title(
-        sql_client,
-        title: str,
-        *,
-        columns: Optional[str] = None,
-        author_email: Optional[str] = None,
+    sql_client,
+    title: str,
+    *,
+    columns: Optional[str] = None,
+    author_email: Optional[str] = None,
 ):
     step_name = f"Get post by title '{title}' from DB"
     if author_email:
@@ -185,20 +179,18 @@ def get_post_by_title(
 
 
 def fetch_single_post_by_title(
-        sql_client,
-        title: str,
-        *,
-        columns: Optional[str] = None,
-        author_email: Optional[str] = None,
-        error_message: Optional[str] = None,
+    sql_client,
+    title: str,
+    *,
+    columns: Optional[str] = None,
+    author_email: Optional[str] = None,
+    error_message: Optional[str] = None,
 ) -> Dict[str, Any]:
     step_name = f"Fetch single post by title '{title}' from DB"
     if author_email:
         step_name += f" by author '{author_email}'"
     with allure.step(step_name):
-        rows = get_post_by_title(
-            sql_client, title, columns=columns, author_email=author_email
-        )
+        rows = get_post_by_title(sql_client, title, columns=columns, author_email=author_email)
         if len(rows) != 1:
             expected = error_message or f"Expected exactly 1 post with title '{title}'"
             if author_email:
@@ -208,12 +200,12 @@ def fetch_single_post_by_title(
 
 
 async def wait_for_post_in_db(
-        sql_client,
-        title: str,
-        *,
-        author_email: Optional[str] = None,
-        timeout: float = 5.0,
-        columns: Optional[str] = None,
+    sql_client,
+    title: str,
+    *,
+    author_email: Optional[str] = None,
+    timeout: float = 5.0,
+    columns: Optional[str] = None,
 ) -> Dict[str, Any]:
     step_name = f"Wait for post '{title}' to appear in DB"
     if author_email:
@@ -235,18 +227,16 @@ async def wait_for_post_in_db(
             error_msg += f" by {author_email}"
         error_msg += f" not found in DB within {timeout} seconds"
 
-        return await _wait_for_condition(
-            _check, timeout=timeout, error_message=error_msg
-        )
+        return await _wait_for_condition(_check, timeout=timeout, error_message=error_msg)
 
 
 async def wait_for_comment_in_db(
-        sql_client,
-        *,
-        post_id: str,
-        text: str,
-        parent_comment_id: Optional[str] = None,
-        timeout: float = 3.0,
+    sql_client,
+    *,
+    post_id: str,
+    text: str,
+    parent_comment_id: Optional[str] = None,
+    timeout: float = 3.0,
 ) -> Dict[str, Any]:
     step_name = f"Wait for comment to appear in DB (post_id: {post_id})"
     if parent_comment_id:
@@ -271,17 +261,15 @@ async def wait_for_comment_in_db(
             error_msg += f" (reply to {parent_comment_id})"
         error_msg += f" not found in DB within {timeout} seconds"
 
-        return await _wait_for_condition(
-            _check, timeout=timeout, error_message=error_msg
-        )
+        return await _wait_for_condition(_check, timeout=timeout, error_message=error_msg)
 
 
 async def wait_for_user_ban_status(
-        sql_client,
-        *,
-        email: str,
-        banned: bool,
-        timeout: float = 3.0,
+    sql_client,
+    *,
+    email: str,
+    banned: bool,
+    timeout: float = 3.0,
 ) -> Dict[str, Any]:
     status_text = "banned" if banned else "unbanned"
     with allure.step(f"Wait for user '{email}' to be {status_text} in DB"):
@@ -308,11 +296,11 @@ async def wait_for_user_ban_status(
 
 
 def count_comments_in_db(
-        sql_client,
-        *,
-        post_id: str,
-        text: str,
-        parent_comment_id: Optional[str] = None,
+    sql_client,
+    *,
+    post_id: str,
+    text: str,
+    parent_comment_id: Optional[str] = None,
 ) -> int:
     step_name = f"Count comments in DB (post_id: {post_id})"
     if parent_comment_id:

@@ -22,9 +22,7 @@ class HomePage(BasePage):
         with allure.step("Validate feed section on Home page"):
             await self.feed.should_have_at_least(min_posts)
 
-    async def open_post(
-        self, *, title: str | None = None, index: int | None = None
-    ) -> PostPage:
+    async def open_post(self, *, title: str | None = None, index: int | None = None) -> PostPage:
         if title is not None:
             card = await self.feed.get_card_by_title(title)
         else:

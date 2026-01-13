@@ -12,7 +12,4 @@ def fake_username() -> str:
 
 
 def fake_password(length: int = 12) -> str:
-    return (
-        faker.password(length=length, digits=True, upper_case=True, lower_case=True)
-        + "@"
-    )
+    return faker.password(length=length, digits=True, upper_case=True, lower_case=True) + "@"

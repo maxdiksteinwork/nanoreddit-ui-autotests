@@ -31,9 +31,7 @@ class CommentsSection:
     async def should_have_at_least(self, count: int = 1) -> None:
         with allure.step(f"Ensure there are at least {count} comments"):
             actual = await self.items.count()
-            assert actual >= count, (
-                f"Expected at least {count} comments, found {actual}"
-            )
+            assert actual >= count, f"Expected at least {count} comments, found {actual}"
 
     async def get_comment_by_index(self, index: int = 0) -> CommentItem:
         total = await self.items.count()
@@ -80,9 +78,7 @@ class CommentForm:
         await self.submit_button.click()
 
     async def add_comment(self, text: str) -> None:
-        with allure.step(
-            f"Submit comment: {text[:50]}{'...' if len(text) > 50 else ''}"
-        ):
+        with allure.step(f"Submit comment: {text[:50]}{'...' if len(text) > 50 else ''}"):
             await self.fill(text)
             await self.submit_button.should_be_enabled()
             await self.submit()
@@ -143,9 +139,7 @@ class CommentItem:
         await self.reply_button.click()
 
     async def reply(self, text: str) -> None:
-        with allure.step(
-            f"Reply to comment: {text[:50]}{'...' if len(text) > 50 else ''}"
-        ):
+        with allure.step(f"Reply to comment: {text[:50]}{'...' if len(text) > 50 else ''}"):
             await self.click_reply()
             await self.reply_textarea.fill(text, validate_value=True)
             await self.reply_submit.click()
@@ -164,9 +158,7 @@ class CommentItem:
             )
         return items
 
-    async def wait_for_reply_with_text(
-        self, expected: str, timeout: int = 5000
-    ) -> "CommentItem":
+    async def wait_for_reply_with_text(self, expected: str, timeout: int = 5000) -> "CommentItem":
         with allure.step(
             f"Check reply with text '{expected[:50]}{'...' if len(expected) > 50 else ''}'"
         ):

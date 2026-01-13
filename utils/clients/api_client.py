@@ -15,9 +15,7 @@ class ApiClient:
     def close(self) -> None:
         self.session.close()
 
-    def register_user(
-        self, *, email: str, username: str, password: str
-    ) -> Dict[str, Any]:
+    def register_user(self, *, email: str, username: str, password: str) -> Dict[str, Any]:
         with allure.step(f"Register user: {email}"):
             payload = {
                 "email": email,
@@ -51,6 +49,10 @@ class ApiClient:
 
             response.raise_for_status()
             return response.json()
+
+    def login_and_get_token(self, *, email: str, password: str) -> str:
+        login_response = self.login_user(email=email, password=password)
+        return login_response["responseData"]["jwt"]
 
     def publish_post(self, *, token: str, title: str, content: str) -> Dict[str, Any]:
         with allure.step(f"Publish post: {title[:50]}{'...' if len(title) > 50 else ''}"):

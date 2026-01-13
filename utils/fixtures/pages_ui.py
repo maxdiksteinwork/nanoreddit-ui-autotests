@@ -10,11 +10,6 @@ from ui.pages.register_page import RegisterPage
 
 
 @pytest.fixture
-def home_page(page) -> HomePage:
-    return HomePage(page)
-
-
-@pytest.fixture
 def register_page(page) -> RegisterPage:
     return RegisterPage(page)
 
@@ -25,10 +20,45 @@ def login_page(page) -> LoginPage:
 
 
 @pytest.fixture
-def create_post_page(page) -> CreatePostPage:
-    return CreatePostPage(page)
+def authenticated_home_page(authenticated_page) -> HomePage:
+    return HomePage(authenticated_page)
 
 
 @pytest.fixture
-def post_page(page) -> PostPage:
-    return PostPage(page)
+def authenticated_create_post_page(authenticated_page) -> CreatePostPage:
+    return CreatePostPage(authenticated_page)
+
+
+@pytest.fixture
+def authenticated_post_page(authenticated_page) -> PostPage:
+    return PostPage(authenticated_page)
+
+
+@pytest.fixture
+def admin_authenticated_home_page(admin_authenticated_page) -> HomePage:
+    return HomePage(admin_authenticated_page)
+
+
+@pytest.fixture
+def admin_authenticated_create_post_page(admin_authenticated_page) -> CreatePostPage:
+    return CreatePostPage(admin_authenticated_page)
+
+
+@pytest.fixture
+def admin_authenticated_post_page(admin_authenticated_page) -> PostPage:
+    return PostPage(admin_authenticated_page)
+
+
+@pytest.fixture
+def banned_authenticated_home_page(banned_authenticated_page) -> HomePage:
+    return HomePage(banned_authenticated_page)
+
+
+@pytest.fixture
+def banned_authenticated_create_post_page(banned_authenticated_page) -> CreatePostPage:
+    return CreatePostPage(banned_authenticated_page)
+
+
+@pytest.fixture
+def banned_authenticated_post_page(banned_authenticated_page) -> PostPage:
+    return PostPage(banned_authenticated_page)

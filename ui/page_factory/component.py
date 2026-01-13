@@ -44,9 +44,7 @@ class Component(ABC):
                 )
             return self._raw_locator
 
-        resolved_locator = (
-            self._raw_locator.format(**kwargs) if kwargs else self._raw_locator
-        )
+        resolved_locator = self._raw_locator.format(**kwargs) if kwargs else self._raw_locator
         return self.page.locator(resolved_locator)
 
     async def click(self, **kwargs: Any) -> None:

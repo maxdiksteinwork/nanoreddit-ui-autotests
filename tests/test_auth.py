@@ -28,16 +28,10 @@ faker = Faker()
 EDGE_CASE_PASSWORD = "Passw0rd"
 
 
-def _email_with_lengths(
-        local_len: int, domain_before_dot: int, domain_after_dot: int
-) -> str:
+def _email_with_lengths(local_len: int, domain_before_dot: int, domain_after_dot: int) -> str:
     local_part = faker.pystr(min_chars=local_len, max_chars=local_len)
-    domain_before = faker.pystr(
-        min_chars=domain_before_dot, max_chars=domain_before_dot
-    ).lower()
-    domain_after = faker.pystr(
-        min_chars=domain_after_dot, max_chars=domain_after_dot
-    ).lower()
+    domain_before = faker.pystr(min_chars=domain_before_dot, max_chars=domain_before_dot).lower()
+    domain_after = faker.pystr(min_chars=domain_after_dot, max_chars=domain_after_dot).lower()
     return f"{local_part}@{domain_before}.{domain_after}"
 
 
@@ -49,7 +43,7 @@ def _password_with_length(length: int) -> str:
 
 
 async def _assert_password_visibility_toggle(
-        page, test_id: str, *, step_name: str | None = None
+    page, test_id: str, *, step_name: str | None = None
 ) -> None:
     step_name = step_name or "Verify password visibility toggle"
     with allure.step(step_name):
@@ -105,9 +99,7 @@ async def test_register_and_login(register_page, login_page):
 @allure.feature("Auth UI")
 @allure.story("Register and login with problematic password")
 @allure.severity(allure.severity_level.NORMAL)
-@pytest.mark.xfail(
-    reason="BUG: UI login отклоняет пароль без спецсимволов @#$%^&+=", strict=False
-)
+@pytest.mark.xfail(reason="BUG: UI login отклоняет пароль без спецсимволов @#$%^&+=", strict=False)
 async def test_register_and_login_with_problematic_password(register_page, login_page):
     user = RegisterUserDTO(
         email=fake_email(),
@@ -185,17 +177,15 @@ async def test_register_with_max_values(register_page):
     ],
 )
 async def test_register_with_exceeding_max_values(
-        register_page,
-        email_len_local,
-        email_len_domain_before,
-        email_len_domain_after,
-        username_len,
-        password_len,
+    register_page,
+    email_len_local,
+    email_len_domain_before,
+    email_len_domain_after,
+    username_len,
+    password_len,
 ):
     await register_page.open()
-    email = _email_with_lengths(
-        email_len_local, email_len_domain_before, email_len_domain_after
-    )
+    email = _email_with_lengths(email_len_local, email_len_domain_before, email_len_domain_after)
     username = faker.pystr(min_chars=username_len, max_chars=username_len)
     password = _password_with_length(password_len)
 
@@ -271,9 +261,7 @@ async def test_register_with_mismatched_passwords(register_page):
         "local@domain..com",
     ],
 )
-async def test_register_with_invalid_email(
-        register_page, invalid_email, session_sql_client
-):
+async def test_register_with_invalid_email(register_page, invalid_email, session_sql_client):
     await register_page.open()
     user = RegisterUserDTO.random()
     user.email = invalid_email
@@ -299,9 +287,7 @@ async def test_register_with_invalid_email(
 @allure.story("Register user | validation errors")
 @allure.severity(allure.severity_level.NORMAL)
 @pytest.mark.parametrize("field", ["email", "username"])
-async def test_register_with_existing_email_or_username(
-        register_page, user_api_created, field
-):
+async def test_register_with_existing_email_or_username(register_page, user_api_created, field):
     user = RegisterUserDTO.random()
     await register_page.open()
     if field == "email":
@@ -316,9 +302,7 @@ async def test_register_with_existing_email_or_username(
 @allure.feature("Auth UI")
 @allure.story("Register user | validation errors")
 @allure.severity(allure.severity_level.NORMAL)
-async def test_register_email_case_insensitive(
-        register_page, user_api_created: RegisterUserDTO
-):
+async def test_register_email_case_insensitive(register_page, user_api_created: RegisterUserDTO):
     user = RegisterUserDTO.random()
     user.email = user_api_created.email.upper()
     await register_page.open()
@@ -492,14 +476,10 @@ async def test_theme_switch_on_login_page(login_page):
         await login_page.navbar.toggle_theme()
         await expect(switch_locator).to_have_attribute("aria-checked", target_state)
         toggled_theme = await html_locator.get_attribute("data-theme") or ""
-        assert toggled_theme != initial_theme, (
-            "HTML data-theme did not change after toggle"
-        )
+        assert toggled_theme != initial_theme, "HTML data-theme did not change after toggle"
 
     with allure.step("Toggle theme back and verify return to initial state"):
         await login_page.navbar.toggle_theme()
         await expect(switch_locator).to_have_attribute("aria-checked", initial_state)
         reverted_theme = await html_locator.get_attribute("data-theme") or ""
-        assert reverted_theme == initial_theme, (
-            "Theme switcher did not return to initial state"
-        )
+        assert reverted_theme == initial_theme, "Theme switcher did not return to initial state"

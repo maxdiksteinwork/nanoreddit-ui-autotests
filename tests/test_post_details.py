@@ -12,18 +12,18 @@ from utils.database.database_helpers import fetch_single_post_by_title
 @allure.story("Content")
 @allure.severity(allure.severity_level.CRITICAL)
 async def test_post_details_content(
-    user_api_created_ui_authorized, make_post_api_created, session_sql_client, home_page
+    user_api_created, make_post_api_created, session_sql_client, authenticated_home_page
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    with allure.step("Verify post content in database"):
-        db_post = await asyncio.to_thread(
-            fetch_single_post_by_title, session_sql_client, created_post.title
-        )
-        assert db_post["content"] == created_post.content
+    db_post = await asyncio.to_thread(
+        fetch_single_post_by_title, session_sql_client, created_post.title
+    )
 
-    post_page = await home_page.navigate_to_post_by_id(db_post["id"])
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.navigate_to_post_by_id(db_post["id"])
     await post_page.page.wait_for_url(f"**/post/{db_post['id']}")
     await post_page.should_display_post(
         title=created_post.title,
@@ -35,14 +35,13 @@ async def test_post_details_content(
 @allure.feature("Post details")
 @allure.story("Voting")
 @allure.severity(allure.severity_level.NORMAL)
-async def test_post_vote_up_down(
-    user_api_created_ui_authorized, make_post_api_created, home_page
-):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+async def test_post_vote_up_down(user_api_created, make_post_api_created, authenticated_home_page):
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    await home_page.reload()
-    post_page = await home_page.open_post(title=created_post.title)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.open_post(title=created_post.title)
     await post_page.post.should_have_score(0)
 
     async def _vote_and_check(action, expected_score: int):

@@ -23,17 +23,19 @@ from utils.database.database_helpers import (
 @allure.story("Add comment")
 @allure.severity(allure.severity_level.CRITICAL)
 async def test_add_comment(
-    user_api_created_ui_authorized, make_post_api_created, session_sql_client, home_page
+    user_api_created, make_post_api_created, session_sql_client, authenticated_home_page
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
     db_post = await asyncio.to_thread(
         fetch_single_post_by_title, session_sql_client, created_post.title
     )
     post_id = db_post["id"]
 
-    post_page = await home_page.navigate_to_post_by_id(post_id)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.navigate_to_post_by_id(post_id)
     await post_page.page.wait_for_url(f"**/post/{post_id}")
 
     comment_text = AddCommentDTO.random().text
@@ -60,16 +62,17 @@ async def test_add_comment(
 @allure.story("Add comment | boundary valid values")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_add_comment_boundary_valid(
-    user_api_created_ui_authorized,
+    user_api_created,
     make_post_api_created,
-    home_page,
+    authenticated_home_page,
     comment_text,
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    await home_page.reload()
-    post_page = await home_page.open_post(title=created_post.title)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.open_post(title=created_post.title)
     await post_page.add_comment(comment_text)
     await assert_comment_added_success(post_page)
     await post_page.should_have_comment(comment_text)
@@ -79,15 +82,16 @@ async def test_add_comment_boundary_valid(
 @allure.story("Add comment | special symbols")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_add_comment_special_symbols(
-    user_api_created_ui_authorized,
+    user_api_created,
     make_post_api_created,
-    home_page,
+    authenticated_home_page,
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    await home_page.reload()
-    post_page = await home_page.open_post(title=created_post.title)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.open_post(title=created_post.title)
 
     special_text = "🔥 Привет <b>друг</b> & welcome!"
     await post_page.add_comment(special_text)
@@ -110,17 +114,18 @@ async def test_add_comment_special_symbols(
 @allure.story("Add comment | boundary invalid values")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_add_comment_boundary_invalid(
-    user_api_created_ui_authorized,
+    user_api_created,
     make_post_api_created,
-    home_page,
+    authenticated_home_page,
     comment_text,
     expect_disabled,
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    await home_page.reload()
-    post_page = await home_page.open_post(title=created_post.title)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.open_post(title=created_post.title)
 
     await post_page.comments.form.fill(comment_text)
     if expect_disabled:
@@ -129,9 +134,7 @@ async def test_add_comment_boundary_invalid(
         await post_page.comments.form.submit_button.should_be_enabled()
         await post_page.comments.form.submit()
         await assert_comment_validation_error(post_page)
-        await expect(
-            post_page.comments.items.filter(has_text=comment_text)
-        ).to_have_count(0)
+        await expect(post_page.comments.items.filter(has_text=comment_text)).to_have_count(0)
 
 
 # ----------- позитивные тесты добавления ответа к комментарию -----------
@@ -141,17 +144,19 @@ async def test_add_comment_boundary_invalid(
 @allure.story("Reply comment")
 @allure.severity(allure.severity_level.CRITICAL)
 async def test_reply_comment(
-    user_api_created_ui_authorized, make_post_api_created, session_sql_client, home_page
+    user_api_created, make_post_api_created, session_sql_client, authenticated_home_page
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
     db_post = await asyncio.to_thread(
         fetch_single_post_by_title, session_sql_client, created_post.title
     )
     post_id = db_post["id"]
 
-    post_page = await home_page.navigate_to_post_by_id(post_id)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.navigate_to_post_by_id(post_id)
     root_comment_text = AddCommentDTO.random().text
     await post_page.add_comment(root_comment_text)
     await assert_comment_added_success(post_page)
@@ -185,13 +190,14 @@ async def test_reply_comment(
 @allure.story("Reply comment | nested replies")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_reply_to_reply_nested(
-    user_api_created_ui_authorized, make_post_api_created, home_page
+    user_api_created, make_post_api_created, authenticated_home_page
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    await home_page.reload()
-    post_page = await home_page.open_post(title=created_post.title)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.open_post(title=created_post.title)
 
     root_comment_text = AddCommentDTO.random().text
     await post_page.add_comment(root_comment_text)
@@ -216,13 +222,14 @@ async def test_reply_to_reply_nested(
 @allure.story("Reply comment | special symbols")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_reply_special_symbols(
-    user_api_created_ui_authorized, make_post_api_created, home_page
+    user_api_created, make_post_api_created, authenticated_home_page
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    await home_page.reload()
-    post_page = await home_page.open_post(title=created_post.title)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.open_post(title=created_post.title)
 
     root_comment_text = AddCommentDTO.random().text
     await post_page.add_comment(root_comment_text)
@@ -247,13 +254,14 @@ async def test_reply_special_symbols(
 @allure.story("Reply comment | boundary valid values")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_reply_comment_boundary_valid(
-    user_api_created_ui_authorized, make_post_api_created, home_page, reply_text
+    user_api_created, make_post_api_created, authenticated_home_page, reply_text
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    await home_page.reload()
-    post_page = await home_page.open_post(title=created_post.title)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.open_post(title=created_post.title)
 
     root_comment_text = AddCommentDTO.random().text
     await post_page.add_comment(root_comment_text)
@@ -283,17 +291,18 @@ async def test_reply_comment_boundary_valid(
 @allure.story("Reply comment | boundary invalid values")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_reply_comment_boundary_invalid(
-    user_api_created_ui_authorized,
+    user_api_created,
     make_post_api_created,
-    home_page,
+    authenticated_home_page,
     reply_text,
     expect_disabled,
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
-    await home_page.reload()
-    post_page = await home_page.open_post(title=created_post.title)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.open_post(title=created_post.title)
 
     root_comment_text = AddCommentDTO.random().text
     await post_page.add_comment(root_comment_text)
@@ -325,17 +334,19 @@ async def test_reply_comment_boundary_invalid(
 @allure.story("Add comment | interaction resilience")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_add_comment_submit_double_click(
-    user_api_created_ui_authorized, make_post_api_created, session_sql_client, home_page
+    user_api_created, make_post_api_created, session_sql_client, authenticated_home_page
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
     db_post = await asyncio.to_thread(
         fetch_single_post_by_title, session_sql_client, created_post.title
     )
     post_id = db_post["id"]
 
-    post_page = await home_page.navigate_to_post_by_id(post_id)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.navigate_to_post_by_id(post_id)
     comment_text = AddCommentDTO.random().text
     await post_page.comments.form.fill(comment_text)
     await post_page.comments.form.submit_button.should_be_enabled()
@@ -356,17 +367,19 @@ async def test_add_comment_submit_double_click(
 @allure.story("Reply comment | interaction resilience")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_reply_comment_submit_double_click(
-    user_api_created_ui_authorized, make_post_api_created, session_sql_client, home_page
+    user_api_created, make_post_api_created, session_sql_client, authenticated_home_page
 ):
-    user = user_api_created_ui_authorized
-    created_post = await make_post_api_created(email=user.email, password=user.password)
+    created_post = await make_post_api_created(
+        email=user_api_created.email, password=user_api_created.password
+    )
 
     db_post = await asyncio.to_thread(
         fetch_single_post_by_title, session_sql_client, created_post.title
     )
     post_id = db_post["id"]
 
-    post_page = await home_page.navigate_to_post_by_id(post_id)
+    await authenticated_home_page.open()
+    post_page = await authenticated_home_page.navigate_to_post_by_id(post_id)
     root_comment_text = AddCommentDTO.random().text
     await post_page.add_comment(root_comment_text)
     await assert_comment_added_success(post_page)

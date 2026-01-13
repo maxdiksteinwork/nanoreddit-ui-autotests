@@ -2,7 +2,6 @@ import allure
 import pytest
 from playwright.async_api import expect
 
-from ui.pages.home_page import HomePage
 from utils.assertions.ui_expectations import (
     assert_user_banned_success,
     assert_user_unbanned_success,
@@ -15,11 +14,9 @@ from utils.database.database_helpers import wait_for_user_ban_status
 @allure.feature("Admin tools")
 @allure.story("Admin profile displays admin role")
 @allure.severity(allure.severity_level.MINOR)
-async def test_admin_profile_modal_shows_admin_role(
-    admin_api_created_ui_authorized, page
-):
-    navbar = HomePage(page).navbar
-    modal = await navbar.open_profile()
+async def test_admin_profile_modal_shows_admin_role(admin_authenticated_home_page):
+    await admin_authenticated_home_page.open()
+    modal = await admin_authenticated_home_page.navbar.open_profile()
     await modal.should_show_role("ROLE_ADMIN")
 
 
@@ -27,7 +24,6 @@ async def test_admin_profile_modal_shows_admin_role(
 @allure.story("View user profile")
 @allure.severity(allure.severity_level.CRITICAL)
 async def test_admin_view_user_profile(
-    admin_api_created_ui_authorized,
     user_api_created,
     make_post_via_api_and_open_author_modal,
 ):
@@ -41,7 +37,6 @@ async def test_admin_view_user_profile(
 @allure.story("Ban user")
 @allure.severity(allure.severity_level.CRITICAL)
 async def test_admin_ban_user(
-    admin_api_created_ui_authorized,
     user_api_created,
     make_post_via_api_and_open_author_modal,
     session_sql_client,
@@ -70,7 +65,6 @@ async def test_admin_ban_user(
 @allure.story("Ban another admin")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_admin_ban_another_admin(
-    admin_api_created_ui_authorized,
     user_api_created,
     make_admin_api_created,
     make_post_via_api_and_open_author_modal,
@@ -87,7 +81,6 @@ async def test_admin_ban_another_admin(
 @allure.story("Unban user")
 @allure.severity(allure.severity_level.CRITICAL)
 async def test_admin_unban_user(
-    admin_api_created_ui_authorized,
     user_api_created,
     make_post_via_api_and_open_author_modal,
     open_author_modal,
@@ -120,7 +113,6 @@ async def test_admin_unban_user(
 @allure.story("Ban already banned user")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_admin_ban_already_banned_user(
-    admin_api_created_ui_authorized,
     make_post_via_api_and_open_author_modal,
     open_author_modal,
     user_api_created,
@@ -139,7 +131,6 @@ async def test_admin_ban_already_banned_user(
 @allure.severity(allure.severity_level.NORMAL)
 @pytest.mark.parametrize("duration", [0, -10, "10abc"])
 async def test_admin_ban_invalid_duration(
-    admin_api_created_ui_authorized,
     user_api_created,
     make_post_via_api_and_open_author_modal,
     duration,

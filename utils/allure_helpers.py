@@ -34,9 +34,7 @@ def attach_db_query(
         )
 
 
-async def attach_screenshot(
-    page: "Page", name: str = "Screenshot", full_page: bool = True
-) -> None:
+async def attach_screenshot(page: "Page", name: str = "Screenshot", full_page: bool = True) -> None:
     try:
         screenshot_bytes = await page.screenshot(full_page=full_page)
         allure.attach(

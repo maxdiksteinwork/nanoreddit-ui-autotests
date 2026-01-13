@@ -13,9 +13,7 @@ class UserProfileModal:
     FIELD_LOCATOR = "p"
 
     def __init__(self, page: Page) -> None:
-        self.dialog = (
-            page.get_by_role("dialog").filter(has_text=self.TITLE).first
-        )
+        self.dialog = page.get_by_role("dialog").filter(has_text=self.TITLE).first
         self.close_button = Button(
             page,
             locator=self.dialog.get_by_role("button").first,

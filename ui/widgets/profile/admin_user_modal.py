@@ -36,9 +36,7 @@ class AdminUserModal(UserProfileModal):
     async def set_ban_duration(self, seconds: int) -> None:
         await self.ban_duration_input.fill(str(seconds), validate_value=True)
 
-    async def ban_user(
-        self, seconds: int | None = None, raw_input: str | None = None
-    ) -> None:
+    async def ban_user(self, seconds: int | None = None, raw_input: str | None = None) -> None:
         if raw_input is not None:
             await self.ban_duration_input.fill(raw_input, validate_value=True)
         elif seconds is not None:

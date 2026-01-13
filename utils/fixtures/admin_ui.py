@@ -36,19 +36,18 @@ def admin_api_created(make_admin_api_created) -> RegisterUserDTO:
 
 
 @pytest.fixture
-def banned_user_api_created(session_api_client, admin_api_created) -> LoginUserDTO:
+def banned_user_api_created(session_api_client, admin_api_created) -> RegisterUserDTO:
     user = RegisterUserDTO.random()
     session_api_client.register_user(
         email=user.email,
         username=user.username,
         password=user.password,
     )
-    login_response = session_api_client.login_user(
+    token = session_api_client.login_and_get_token(
         email=admin_api_created.email, password=admin_api_created.password
     )
-    token = login_response["responseData"]["jwt"]
     session_api_client.ban_user(email=user.email, seconds=3600, token=token)
-    return LoginUserDTO.from_register(user)
+    return user
 
 
 @pytest_asyncio.fixture
@@ -60,14 +59,12 @@ async def admin_api_created_ui_authorized(login_page, admin_api_created):
 
 @pytest.fixture
 def make_post_via_api_and_open_author_modal(
-    make_post_api_created, home_page, open_author_modal
+    make_post_api_created, admin_authenticated_home_page, open_author_modal
 ):
     async def _create_and_open(target):
-        created_post = await make_post_api_created(
-            email=target.email, password=target.password
-        )
-        await home_page.open()
-        post_page = await home_page.open_post(title=created_post.title)
+        created_post = await make_post_api_created(email=target.email, password=target.password)
+        await admin_authenticated_home_page.open()
+        post_page = await admin_authenticated_home_page.open_post(title=created_post.title)
         modal = await open_author_modal(post_page)
         return post_page, modal
 

@@ -71,9 +71,7 @@ class SQLClient:
 
                     return result
                 except psycopg2.ProgrammingError:
-                    attach_db_query(
-                        sql=sql, params=params, rows=[], name="SQL query (0 rows)"
-                    )
+                    attach_db_query(sql=sql, params=params, rows=[], name="SQL query (0 rows)")
                     return []
         except psycopg2.Error as e:
             error_info = {
@@ -122,11 +120,7 @@ class SQLClient:
 
     def close(self):
         try:
-            if (
-                hasattr(self, "conn")
-                and self.conn
-                and not getattr(self.conn, "closed", True)
-            ):
+            if hasattr(self, "conn") and self.conn and not getattr(self.conn, "closed", True):
                 self.conn.close()
         except Exception as e:
             error_info = {

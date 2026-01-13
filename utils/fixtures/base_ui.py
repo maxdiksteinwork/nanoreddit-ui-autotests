@@ -11,6 +11,7 @@ from playwright.async_api import (
     async_playwright,
 )
 
+from models.auth_dto import RegisterUserDTO
 from settings import get_settings
 from utils.allure_helpers import (
     attach_console_logs,
@@ -19,6 +20,32 @@ from utils.allure_helpers import (
 )
 from utils.clients.api_client import ApiClient
 from utils.clients.sql_client import SQLClient
+
+
+def _setup_console_logging(page: Page) -> List[str]:
+    console_messages: List[str] = []
+
+    def _handle_console(msg: ConsoleMessage) -> None:
+        location = msg.location
+        location_suffix = ""
+        if location and location.get("url"):
+            url = location["url"]
+            line = location.get("lineNumber")
+            location_suffix = f" @ {url}"
+            if line is not None:
+                location_suffix += f":{line}"
+        console_messages.append(f"[{msg.type.upper()}] {msg.text}{location_suffix}")
+
+    page.on("console", _handle_console)
+    page._console_logs = console_messages
+    return console_messages
+
+
+def _cleanup_console_logging(page: Page) -> None:
+    try:
+        page.off("console", lambda msg: None)
+    except Exception:
+        pass
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -33,9 +60,7 @@ async def session_browser(
     session_playwright_instance: Playwright,
 ) -> AsyncGenerator[Browser, Any]:
     settings = get_settings()
-    browser = await session_playwright_instance.chromium.launch(
-        headless=settings.headless
-    )
+    browser = await session_playwright_instance.chromium.launch(headless=settings.headless)
     try:
         yield browser
     finally:
@@ -58,29 +83,11 @@ async def context(
 @pytest_asyncio.fixture
 async def page(context: BrowserContext) -> AsyncGenerator[Page, Any]:
     new_page = await context.new_page()
-    console_messages: List[str] = []
-
-    def _handle_console(msg: ConsoleMessage) -> None:
-        location = msg.location
-        location_suffix = ""
-        if location and location.get("url"):
-            url = location["url"]
-            line = location.get("lineNumber")
-            location_suffix = f" @ {url}"
-            if line is not None:
-                location_suffix += f":{line}"
-        console_messages.append(f"[{msg.type.upper()}] {msg.text}{location_suffix}")
-
-    new_page.on("console", _handle_console)
-    new_page._console_logs = console_messages
-
+    _setup_console_logging(new_page)
     try:
         yield new_page
     finally:
-        try:
-            new_page.off("console", _handle_console)
-        except Exception:
-            pass
+        _cleanup_console_logging(new_page)
         await new_page.close()
 
 
@@ -110,6 +117,123 @@ def session_sql_client():
         client.close()
 
 
+async def _create_authenticated_context(
+    browser: Browser,
+    user: RegisterUserDTO,
+    api_client: ApiClient,
+) -> BrowserContext:
+    """создает контекст с токеном пользователя в localStorage"""
+    settings = get_settings()
+    token = api_client.login_and_get_token(
+        email=user.email,
+        password=user.password,
+    )
+    ctx = await browser.new_context(
+        storage_state={
+            "origins": [
+                {
+                    "origin": settings.base_url.rstrip("/"),
+                    "localStorage": [{"name": "token", "value": token}],
+                }
+            ]
+        }
+    )
+    ctx.set_default_timeout(settings.default_timeout_ms)
+    return ctx
+
+
+@pytest.fixture
+def make_authenticated_context(session_browser: Browser, session_api_client: ApiClient):
+    """фабрика для создания авторизованного контекста"""
+
+    async def _create_context(user: RegisterUserDTO) -> BrowserContext:
+        return await _create_authenticated_context(session_browser, user, session_api_client)
+
+    return _create_context
+
+
+@pytest_asyncio.fixture
+async def authenticated_context(
+    session_browser: Browser,
+    user_api_created: RegisterUserDTO,
+    session_api_client: ApiClient,
+) -> AsyncGenerator[BrowserContext, Any]:
+    ctx = await _create_authenticated_context(session_browser, user_api_created, session_api_client)
+    try:
+        yield ctx
+    finally:
+        await ctx.close()
+
+
+@pytest_asyncio.fixture
+async def admin_authenticated_context(
+    session_browser: Browser,
+    admin_api_created: RegisterUserDTO,
+    session_api_client: ApiClient,
+) -> AsyncGenerator[BrowserContext, Any]:
+    ctx = await _create_authenticated_context(
+        session_browser, admin_api_created, session_api_client
+    )
+    try:
+        yield ctx
+    finally:
+        await ctx.close()
+
+
+@pytest_asyncio.fixture
+async def authenticated_page(
+    authenticated_context: BrowserContext,
+) -> AsyncGenerator[Page, Any]:
+    new_page = await authenticated_context.new_page()
+    _setup_console_logging(new_page)
+    try:
+        yield new_page
+    finally:
+        _cleanup_console_logging(new_page)
+        await new_page.close()
+
+
+@pytest_asyncio.fixture
+async def admin_authenticated_page(
+    admin_authenticated_context: BrowserContext,
+) -> AsyncGenerator[Page, Any]:
+    new_page = await admin_authenticated_context.new_page()
+    _setup_console_logging(new_page)
+    try:
+        yield new_page
+    finally:
+        _cleanup_console_logging(new_page)
+        await new_page.close()
+
+
+@pytest_asyncio.fixture
+async def banned_authenticated_context(
+    session_browser: Browser,
+    banned_user_api_created: RegisterUserDTO,
+    session_api_client: ApiClient,
+) -> AsyncGenerator[BrowserContext, Any]:
+    ctx = await _create_authenticated_context(
+        session_browser, banned_user_api_created, session_api_client
+    )
+    try:
+        yield ctx
+    finally:
+        await ctx.close()
+
+
+@pytest_asyncio.fixture
+async def banned_authenticated_page(
+    banned_authenticated_context: BrowserContext,
+) -> AsyncGenerator[Page, Any]:
+    new_page = await banned_authenticated_context.new_page()
+    _setup_console_logging(new_page)
+    try:
+        yield new_page
+    finally:
+        _cleanup_console_logging(new_page)
+        await new_page.close()
+
+
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item):
     """
@@ -122,7 +246,7 @@ def pytest_runtest_makereport(item):
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def capture_artifacts(request, page: Page):
+async def capture_artifacts(request):
     """
     если тест провалился на стадии call, делает полноэкранный скриншот и прикрепляет
     его к отчёту Allure (папка берётся из Settings)
@@ -132,6 +256,21 @@ async def capture_artifacts(request, page: Page):
     rep = getattr(request.node, "rep_call", None)
     if rep is None or rep.passed:
         return
+
+    # ищем page в фикстурах теста (приоритет: authenticated страницы, потом обычная)
+    page = None
+    for fixture_name in [
+        "banned_authenticated_page",
+        "authenticated_page",
+        "admin_authenticated_page",
+        "page",
+    ]:
+        if fixture_name in request.fixturenames:
+            try:
+                page = request.getfixturevalue(fixture_name)
+                break
+            except Exception:
+                continue
 
     if page is None or page.is_closed():
         return

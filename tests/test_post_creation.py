@@ -20,44 +20,39 @@ from utils.database.database_helpers import (
 @allure.feature("Post creation")
 @allure.story("Create post")
 @allure.severity(allure.severity_level.CRITICAL)
-async def test_create_post(
-        user_api_created_ui_authorized, session_sql_client, create_post_page, page
-):
-    user = user_api_created_ui_authorized
+async def test_create_post(user_api_created, session_sql_client, authenticated_create_post_page):
     payload = PublishPostDTO.random()
 
-    await create_post_page.open()
-    await create_post_page.page.wait_for_timeout(5000)
-    await create_post_page.create_post_model(payload)
-    await assert_post_creation_success(page)
+    await authenticated_create_post_page.open()
+    await authenticated_create_post_page.create_post_model(payload)
+    await assert_post_creation_success(authenticated_create_post_page.page)
 
-    with allure.step("Validate created post in DB"):
-        db_post = await wait_for_post_in_db(
-            session_sql_client, payload.title, author_email=user.email
-        )
-        assert db_post["title"] == payload.title
-        assert db_post["content"] == payload.content
+    db_post = await wait_for_post_in_db(
+        session_sql_client, payload.title, author_email=user_api_created.email
+    )
+    assert db_post["title"] == payload.title
+    assert db_post["content"] == payload.content
 
 
 @allure.feature("Post creation")
 @allure.story("Create post with special characters")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_create_post_special_characters(
-        user_api_created_ui_authorized, session_sql_client, create_post_page, page
+    user_api_created, session_sql_client, authenticated_create_post_page
 ):
-    user = user_api_created_ui_authorized
     fancy_title = "🔥 Привет <b>друг</b> & welcome!"
-    fancy_content = ("🔥 Привет <b>друг</b> & welcome! This is a test post with emojis "
-                     "& HTML-like tags.")
+    fancy_content = (
+        "🔥 Привет <b>друг</b> & welcome! This is a test post with emojis & HTML-like tags."
+    )
     fancy_payload = PublishPostDTO(title=fancy_title, content=fancy_content)
 
-    await create_post_page.open()
-    await create_post_page.create_post_model(fancy_payload)
-    await assert_post_creation_success(page)
+    await authenticated_create_post_page.open()
+    await authenticated_create_post_page.create_post_model(fancy_payload)
+    await assert_post_creation_success(authenticated_create_post_page.page)
 
     try:
         db_post = await wait_for_post_in_db(
-            session_sql_client, fancy_title, author_email=user.email
+            session_sql_client, fancy_title, author_email=user_api_created.email
         )
         assert db_post["title"] == fancy_title
         assert db_post["content"] == fancy_content
@@ -65,7 +60,7 @@ async def test_create_post_special_characters(
         await delete_post_by_title_and_author(
             session_sql_client,
             title=fancy_title,
-            author_email=user.email,
+            author_email=user_api_created.email,
         )
 
 
@@ -81,13 +76,11 @@ async def test_create_post_special_characters(
     ],
     ids=["minimal", "max_title", "long_content"],
 )
-async def test_create_post_boundary_valid(
-        user_api_created_ui_authorized, create_post_page, page, title, content
-):
+async def test_create_post_boundary_valid(authenticated_create_post_page, title, content):
     payload = PublishPostDTO(title=title, content=content)
-    await create_post_page.open()
-    await create_post_page.create_post_model(payload)
-    await assert_post_creation_success(page)
+    await authenticated_create_post_page.open()
+    await authenticated_create_post_page.create_post_model(payload)
+    await assert_post_creation_success(authenticated_create_post_page.page)
 
 
 # ----------- негативные тесты создания поста -----------
@@ -109,20 +102,20 @@ async def test_create_post_boundary_valid(
     ],
 )
 async def test_create_post_boundary_invalid(
-        user_api_created_ui_authorized, create_post_page, page, title, content, expectation
+    authenticated_create_post_page, title, content, expectation
 ):
     payload = PublishPostDTO(title=title, content=content)
-    await create_post_page.open()
-    await create_post_page.form.title_input.fill(payload.title)
-    await create_post_page.form.content_input.fill(payload.content)
+    await authenticated_create_post_page.open()
+    await authenticated_create_post_page.form.title_input.fill(payload.title)
+    await authenticated_create_post_page.form.content_input.fill(payload.content)
 
     if expectation == "button_disabled":
-        await create_post_page.form.submit_button.should_be_disabled()
+        await authenticated_create_post_page.form.submit_button.should_be_disabled()
     else:
-        await create_post_page.form.submit_button.should_be_enabled()
-        await create_post_page.form.submit()
+        await authenticated_create_post_page.form.submit_button.should_be_enabled()
+        await authenticated_create_post_page.form.submit()
         await expect_contains_text(
-            create_post_page.get_last_toast(),
+            authenticated_create_post_page.get_last_toast(),
             "Validation error",
             label="Ensure validation error toast is shown",
         )
@@ -135,25 +128,24 @@ async def test_create_post_boundary_invalid(
 @allure.story("Interaction resilience")
 @allure.severity(allure.severity_level.NORMAL)
 async def test_create_post_submit_double_click(
-        user_api_created_ui_authorized, session_sql_client, create_post_page, page
+    user_api_created, session_sql_client, authenticated_create_post_page
 ):
-    user = user_api_created_ui_authorized
     title = "Double-click resilience"
     content = "Valid content for double-click test"
     payload = PublishPostDTO(title=title, content=content)
 
-    await create_post_page.open()
-    await create_post_page.form.title_input.fill(payload.title)
-    await create_post_page.form.content_input.fill(payload.content)
+    await authenticated_create_post_page.open()
+    await authenticated_create_post_page.form.title_input.fill(payload.title)
+    await authenticated_create_post_page.form.content_input.fill(payload.content)
 
-    await create_post_page.form.submit_button.should_be_enabled()
-    await create_post_page.form.submit_button.double_click()
+    await authenticated_create_post_page.form.submit_button.should_be_enabled()
+    await authenticated_create_post_page.form.submit_button.double_click()
 
     with allure.step("Validate only one created post in DB"):
-        await wait_for_post_in_db(session_sql_client, title, author_email=user.email)
+        await wait_for_post_in_db(session_sql_client, title, author_email=user_api_created.email)
         posts = await asyncio.to_thread(
-            get_post_by_title, session_sql_client, title, author_email=user.email
+            get_post_by_title, session_sql_client, title, author_email=user_api_created.email
         )
         assert len(posts) == 1, "Double click created duplicate posts in DB"
 
-    await assert_post_creation_success(page)
+    await assert_post_creation_success(authenticated_create_post_page.page)

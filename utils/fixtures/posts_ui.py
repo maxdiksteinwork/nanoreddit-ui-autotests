@@ -13,10 +13,9 @@ def make_post_api_created(session_api_client):
         *, email: str, password: str, payload: PublishPostDTO | None = None
     ) -> PublishPostDTO:
         data = payload or PublishPostDTO.random()
-        login_response = await asyncio.to_thread(
-            session_api_client.login_user, email=email, password=password
+        token = await asyncio.to_thread(
+            session_api_client.login_and_get_token, email=email, password=password
         )
-        token = login_response["responseData"]["jwt"]
         await asyncio.to_thread(
             session_api_client.publish_post,
             token=token,
@@ -40,10 +39,9 @@ def make_post_api_created_with_comment(session_api_client):
         post_data = post_payload or PublishPostDTO.random()
         comment = comment_text or AddCommentDTO.random().text
 
-        login_response = await asyncio.to_thread(
-            session_api_client.login_user, email=email, password=password
+        token = await asyncio.to_thread(
+            session_api_client.login_and_get_token, email=email, password=password
         )
-        token = login_response["responseData"]["jwt"]
         post_response = await asyncio.to_thread(
             session_api_client.publish_post,
             token=token,
