@@ -37,9 +37,7 @@ def make_admin_api_created(
 
 
 @pytest.fixture
-def admin_api_created(
-    make_admin_api_created
-) -> RegisterUserDTO:
+def admin_api_created(make_admin_api_created) -> RegisterUserDTO:
     return make_admin_api_created()
 
 

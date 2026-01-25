@@ -5,9 +5,8 @@ from utils.assertions.ui_expectations import assert_banned_user_toast
 
 
 class TestBannedUser:
-
     # ----------- негативные тесты действий забаненного юзера -----------
-    
+
     @allure.feature("Banned user")
     @allure.story("Cannot publish post")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -70,7 +69,9 @@ class TestBannedUser:
 
         await assert_banned_user_toast(post_page)
         final_count = await post_page.comments.items.count()
-        assert final_count == initial_count, f"Expected {initial_count} comments, found {final_count}"
+        assert final_count == initial_count, (
+            f"Expected {initial_count} comments, found {final_count}"
+        )
 
     @allure.feature("Banned user")
     @allure.story("Cannot reply to comment")

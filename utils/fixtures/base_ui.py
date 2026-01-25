@@ -3,7 +3,6 @@ from typing import Any, AsyncGenerator, Awaitable, Callable, List, Literal
 
 import pytest
 import pytest_asyncio
-from pytest import FixtureRequest
 from playwright.async_api import (
     Browser,
     BrowserContext,
@@ -12,6 +11,7 @@ from playwright.async_api import (
     Playwright,
     async_playwright,
 )
+from pytest import FixtureRequest
 
 from models.auth_dto import RegisterUserDTO
 from settings import get_settings
@@ -51,9 +51,9 @@ def _setup_console_logging(page: Page) -> List[str]:
 
 
 async def _create_authenticated_context(
-        browser: Browser,
-        user: RegisterUserDTO,
-        api_client: ApiClient,
+    browser: Browser,
+    user: RegisterUserDTO,
+    api_client: ApiClient,
 ) -> BrowserContext:
     """создает контекст с токеном пользователя в localStorage"""
     settings = get_settings()
@@ -112,7 +112,7 @@ async def session_playwright_instance() -> AsyncGenerator[Playwright, Any]:
 
 @pytest_asyncio.fixture(scope="session")
 async def session_browser(
-        session_playwright_instance: Playwright,
+    session_playwright_instance: Playwright,
 ) -> AsyncGenerator[Browser, Any]:
     settings = get_settings()
     browser = await session_playwright_instance.chromium.launch(headless=settings.headless)
@@ -228,7 +228,7 @@ async def cleanup_page(request: FixtureRequest) -> AsyncGenerator[None, Any]:
 
     page = getattr(request.node, "_active_page", None)
     context = getattr(request.node, "_active_context", None)
-    
+
     if page is not None:
         try:
             if not page.is_closed():
@@ -236,7 +236,7 @@ async def cleanup_page(request: FixtureRequest) -> AsyncGenerator[None, Any]:
         except Exception:
             pass
         request.node._active_page = None
-    
+
     if context is not None:
         try:
             await context.close()

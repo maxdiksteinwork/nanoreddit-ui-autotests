@@ -8,9 +8,11 @@ import pytest_asyncio
 
 from models.posts_dto import AddCommentDTO, PublishPostDTO
 from utils.clients.api_client import ApiClient
-from utils.database.database_helpers import fetch_single_post_by_title
-from utils.database.database_helpers import clear_all_posts
-from utils.database.database_helpers import delete_post_by_title_and_author
+from utils.database.database_helpers import (
+    clear_all_posts,
+    delete_post_by_title_and_author,
+    fetch_single_post_by_title,
+)
 
 
 @pytest.fixture
@@ -44,7 +46,9 @@ def make_post_api_created_with_db(
         *, email: str, password: str, payload: PublishPostDTO | None = None
     ) -> tuple[PublishPostDTO, dict]:
         created = await make_post_api_created(email=email, password=password, payload=payload)
-        db_post = await asyncio.to_thread(fetch_single_post_by_title, session_sql_client, created.title)
+        db_post = await asyncio.to_thread(
+            fetch_single_post_by_title, session_sql_client, created.title
+        )
         return created, db_post
 
     return _publish_with_db

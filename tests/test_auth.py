@@ -43,7 +43,7 @@ def _password_with_length(length: int) -> str:
 
 
 async def _assert_password_visibility_toggle(
-        page, test_id: str, *, step_name: str | None = None
+    page, test_id: str, *, step_name: str | None = None
 ) -> None:
     step_name = step_name or "Verify password visibility toggle"
     with allure.step(step_name):
@@ -59,9 +59,8 @@ async def _assert_password_visibility_toggle(
 
 
 class TestRegister:
-
     # ----------- позитивные тесты register и login -----------
-    
+
     @allure.feature("Auth UI")
     @allure.story("Register user")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -101,7 +100,9 @@ class TestRegister:
     @allure.feature("Auth UI")
     @allure.story("Register and login with problematic password")
     @allure.severity(allure.severity_level.NORMAL)
-    @pytest.mark.xfail(reason="BUG: UI login отклоняет пароль без спецсимволов @#$%^&+=", strict=False)
+    @pytest.mark.xfail(
+        reason="BUG: UI login отклоняет пароль без спецсимволов @#$%^&+=", strict=False
+    )
     async def test_register_and_login_with_problematic_password(self, make_page):
         register_page = await make_page("register")
         user = RegisterUserDTO(
@@ -174,17 +175,19 @@ class TestRegister:
         ],
     )
     async def test_register_with_exceeding_max_values(
-            self,
-            make_page,
-            email_len_local,
-            email_len_domain_before,
-            email_len_domain_after,
-            username_len,
-            password_len,
+        self,
+        make_page,
+        email_len_local,
+        email_len_domain_before,
+        email_len_domain_after,
+        username_len,
+        password_len,
     ):
         register_page = await make_page("register")
         await register_page.open()
-        email = _email_with_lengths(email_len_local, email_len_domain_before, email_len_domain_after)
+        email = _email_with_lengths(
+            email_len_local, email_len_domain_before, email_len_domain_after
+        )
         username = faker.pystr(min_chars=username_len, max_chars=username_len)
         password = _password_with_length(password_len)
 
@@ -259,7 +262,9 @@ class TestRegister:
             "local@domain..com",
         ],
     )
-    async def test_register_with_invalid_email(self, make_page, invalid_email, invalid_email_user_db_clean):
+    async def test_register_with_invalid_email(
+        self, make_page, invalid_email, invalid_email_user_db_clean
+    ):
         register_page = await make_page("register")
         await register_page.open()
         user = invalid_email_user_db_clean
@@ -281,7 +286,9 @@ class TestRegister:
     @allure.story("Register user | validation errors")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.parametrize("field", ["email", "username"])
-    async def test_register_with_existing_email_or_username(self, make_page, user_api_created, field):
+    async def test_register_with_existing_email_or_username(
+        self, make_page, user_api_created, field
+    ):
         register_page = await make_page("register")
         user = RegisterUserDTO.random()
         await register_page.open()
@@ -296,7 +303,9 @@ class TestRegister:
     @allure.feature("Auth UI")
     @allure.story("Register user | validation errors")
     @allure.severity(allure.severity_level.NORMAL)
-    async def test_register_email_case_insensitive(self, make_page, user_api_created: RegisterUserDTO):
+    async def test_register_email_case_insensitive(
+        self, make_page, user_api_created: RegisterUserDTO
+    ):
         register_page = await make_page("register")
         user = RegisterUserDTO.random()
         user.email = user_api_created.email.upper()

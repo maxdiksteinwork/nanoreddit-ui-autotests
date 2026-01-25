@@ -15,9 +15,8 @@ from utils.database.database_helpers import (
 
 
 class TestPostCreation:
-
     # ----------- позитивные тесты создания поста -----------
-    
+
     @allure.feature("Post creation")
     @allure.story("Create post")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -136,7 +135,9 @@ class TestPostCreation:
         await create_post_page.form.submit_button.double_click()
 
         with allure.step("Validate only one created post in DB"):
-            await wait_for_post_in_db(session_sql_client, title, author_email=user_api_created.email)
+            await wait_for_post_in_db(
+                session_sql_client, title, author_email=user_api_created.email
+            )
             posts = await asyncio.to_thread(
                 get_post_by_title, session_sql_client, title, author_email=user_api_created.email
             )

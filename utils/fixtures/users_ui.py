@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 import pytest_asyncio
 from playwright.async_api import BrowserContext
@@ -6,7 +8,6 @@ from models.auth_dto import RegisterUserDTO
 from ui.pages.home_page import HomePage
 from utils.clients.api_client import ApiClient
 from utils.database.database_helpers import delete_user_by_email, fetch_single_user
-import asyncio
 
 
 @pytest.fixture

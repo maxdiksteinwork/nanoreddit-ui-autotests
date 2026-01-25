@@ -10,9 +10,8 @@ from utils.database.database_helpers import wait_for_user_ban_status
 
 
 class TestAdminTools:
-
     # ----------- позитивные тесты -----------
-    
+
     @allure.feature("Admin tools")
     @allure.story("Admin profile displays admin role")
     @allure.severity(allure.severity_level.MINOR)

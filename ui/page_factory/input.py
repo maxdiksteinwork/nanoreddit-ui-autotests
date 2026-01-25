@@ -10,9 +10,7 @@ class Input(Component):
     def type_of(self) -> str:
         return "input"
 
-    async def fill(
-        self, value: str, *, validate_value: bool = False, **kwargs: Any
-    ) -> None:
+    async def fill(self, value: str, *, validate_value: bool = False, **kwargs: Any) -> None:
         with self._action_step(f'fill with "{value}"'):
             locator = self.get_locator(**kwargs)
             await locator.fill(value)

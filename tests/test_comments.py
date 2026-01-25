@@ -17,9 +17,8 @@ from utils.database.database_helpers import (
 
 
 class TestAddComment:
-    
     # ----------- позитивные тесты добавления комментария к посту -----------
-    
+
     @allure.feature("Post comments")
     @allure.story("Add comment")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -215,9 +214,7 @@ class TestReplyComment:
     @allure.feature("Post comments")
     @allure.story("Reply comment | nested replies")
     @allure.severity(allure.severity_level.NORMAL)
-    async def test_reply_to_reply_nested(
-        self, user_api_created, make_post_api_created, make_page
-    ):
+    async def test_reply_to_reply_nested(self, user_api_created, make_post_api_created, make_page):
         created_post = await make_post_api_created(
             email=user_api_created.email, password=user_api_created.password
         )
@@ -247,9 +244,7 @@ class TestReplyComment:
     @allure.feature("Post comments")
     @allure.story("Reply comment | special symbols")
     @allure.severity(allure.severity_level.NORMAL)
-    async def test_reply_special_symbols(
-        self, user_api_created, make_post_api_created, make_page
-    ):
+    async def test_reply_special_symbols(self, user_api_created, make_post_api_created, make_page):
         created_post = await make_post_api_created(
             email=user_api_created.email, password=user_api_created.password
         )

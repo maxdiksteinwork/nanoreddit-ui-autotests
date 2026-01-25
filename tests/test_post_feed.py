@@ -8,9 +8,8 @@ from utils.database.database_helpers import fetch_single_post_by_title
 
 
 class TestPostFeed:
-
     # ----------- позитивные тесты -----------
-    
+
     @allure.feature("Post feed")
     @allure.story("Empty state")
     @allure.severity(allure.severity_level.NORMAL)

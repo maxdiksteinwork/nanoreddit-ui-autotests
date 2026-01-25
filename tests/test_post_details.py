@@ -4,14 +4,13 @@ from utils.assertions.ui_expectations import expect_contains_text
 
 
 class TestPostDetails:
-
     # ----------- позитивные тесты -----------
 
     @allure.feature("Post details")
     @allure.story("Content")
     @allure.severity(allure.severity_level.CRITICAL)
     async def test_post_details_content(
-            self, user_api_created, make_post_api_created_with_db, make_page
+        self, user_api_created, make_post_api_created_with_db, make_page
     ):
         created_post, db_post = await make_post_api_created_with_db(
             email=user_api_created.email, password=user_api_created.password

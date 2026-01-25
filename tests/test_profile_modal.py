@@ -3,15 +3,12 @@ from playwright.async_api import expect
 
 
 class TestProfileModal:
-
     # ----------- позитивные тесты -----------
-    
+
     @allure.feature("Profile modal")
     @allure.story("Display user info")
     @allure.severity(allure.severity_level.NORMAL)
-    async def test_profile_modal_shows_user(
-            self, user_api_created, db_user_api_created, make_page
-    ):
+    async def test_profile_modal_shows_user(self, user_api_created, db_user_api_created, make_page):
         home_page = await make_page("home", user=user_api_created)
         await home_page.open()
         db_user = db_user_api_created
