@@ -18,7 +18,7 @@ class SQLClient:
         "jwt",
     }
 
-    def __init__(self, host: str, port: int, dbname: str, user: str, password: str):
+    def __init__(self, host: str, port: int, dbname: str, user: str, password: str) -> None:
         self._connection_params = {
             "host": host,
             "port": port,
@@ -29,7 +29,7 @@ class SQLClient:
         self.conn = psycopg2.connect(**self._connection_params)
         self.conn.autocommit = True
 
-    def _ensure_connection(self):
+    def _ensure_connection(self) -> None:
         """восстанавливает соединение, если оно закрыто или отсутствует"""
         try:
             if self.conn is None or getattr(self.conn, "closed", True):
@@ -118,7 +118,7 @@ class SQLClient:
             )
             raise RuntimeError(f"SQL execution failed: {e}") from e
 
-    def close(self):
+    def close(self) -> None:
         try:
             if hasattr(self, "conn") and self.conn and not getattr(self.conn, "closed", True):
                 self.conn.close()

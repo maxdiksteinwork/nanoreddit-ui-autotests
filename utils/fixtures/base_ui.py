@@ -1,8 +1,9 @@
 import asyncio
-from typing import Any, AsyncGenerator, List
+from typing import Any, AsyncGenerator, Awaitable, Callable, List, Literal
 
 import pytest
 import pytest_asyncio
+from pytest import FixtureRequest
 from playwright.async_api import (
     Browser,
     BrowserContext,
@@ -14,6 +15,11 @@ from playwright.async_api import (
 
 from models.auth_dto import RegisterUserDTO
 from settings import get_settings
+from ui.pages.create_post_page import CreatePostPage
+from ui.pages.home_page import HomePage
+from ui.pages.login_page import LoginPage
+from ui.pages.post_page import PostPage
+from ui.pages.register_page import RegisterPage
 from utils.allure_helpers import (
     attach_console_logs,
     attach_dom_snapshot,
@@ -21,6 +27,8 @@ from utils.allure_helpers import (
 )
 from utils.clients.api_client import ApiClient
 from utils.clients.sql_client import SQLClient
+
+PageType = Literal["home", "create_post", "post", "login", "register"]
 
 
 def _setup_console_logging(page: Page) -> List[str]:
@@ -42,17 +50,10 @@ def _setup_console_logging(page: Page) -> List[str]:
     return console_messages
 
 
-def _cleanup_console_logging(page: Page) -> None:
-    try:
-        page.off("console", lambda msg: None)
-    except Exception:
-        pass
-
-
 async def _create_authenticated_context(
-    browser: Browser,
-    user: RegisterUserDTO,
-    api_client: ApiClient,
+        browser: Browser,
+        user: RegisterUserDTO,
+        api_client: ApiClient,
 ) -> BrowserContext:
     """создает контекст с токеном пользователя в localStorage"""
     settings = get_settings()
@@ -74,7 +75,27 @@ async def _create_authenticated_context(
     return ctx
 
 
-async def _attach_artifacts_async(page: Page):
+async def _create_guest_context(browser: Browser) -> BrowserContext:
+    """создает гостевой контекст без авторизации"""
+    settings = get_settings()
+    ctx = await browser.new_context()
+    ctx.set_default_timeout(settings.default_timeout_ms)
+    return ctx
+
+
+def _create_page_instance(page_type: PageType, base_page: Page):
+    """создаёт экземпляр страницы нужного типа"""
+    page_classes = {
+        "home": HomePage,
+        "create_post": CreatePostPage,
+        "post": PostPage,
+        "login": LoginPage,
+        "register": RegisterPage,
+    }
+    return page_classes[page_type](base_page)
+
+
+async def _attach_artifacts_async(page: Page) -> None:
     await attach_screenshot(page, name="Screenshot")
     await attach_dom_snapshot(page, name="DOM snapshot")
     console_logs: list[str] | None = getattr(page, "_console_logs", None)
@@ -91,44 +112,18 @@ async def session_playwright_instance() -> AsyncGenerator[Playwright, Any]:
 
 @pytest_asyncio.fixture(scope="session")
 async def session_browser(
-    session_playwright_instance: Playwright,
+        session_playwright_instance: Playwright,
 ) -> AsyncGenerator[Browser, Any]:
     settings = get_settings()
     browser = await session_playwright_instance.chromium.launch(headless=settings.headless)
-    try:
-        yield browser
-    finally:
-        await browser.close()
-
-
-@pytest.fixture(scope="session")
-def session_api_client():
-    settings = get_settings()
-    client = ApiClient(base_url=settings.api_base_url)
-    try:
-        yield client
-    finally:
-        client.close()
-
-
-@pytest.fixture(scope="session")
-def session_sql_client():
-    settings = get_settings()
-    client = SQLClient(
-        host=settings.db_host,
-        port=settings.db_port,
-        dbname=settings.db_name,
-        user=settings.db_user,
-        password=settings.db_password.get_secret_value(),
-    )
-    try:
-        yield client
-    finally:
-        client.close()
+    yield browser
+    await browser.close()
 
 
 @pytest.fixture
-def make_authenticated_context(session_browser: Browser, session_api_client: ApiClient):
+def make_authenticated_context(
+    session_browser: Browser, session_api_client: ApiClient
+) -> Callable[[RegisterUserDTO], Awaitable[BrowserContext]]:
     """фабрика для создания авторизованного контекста"""
 
     async def _create_context(user: RegisterUserDTO) -> BrowserContext:
@@ -137,119 +132,63 @@ def make_authenticated_context(session_browser: Browser, session_api_client: Api
     return _create_context
 
 
-@pytest_asyncio.fixture
-async def context(
+@pytest.fixture
+def make_page(
     session_browser: Browser,
-) -> AsyncGenerator[BrowserContext, Any]:
+    make_authenticated_context,
+    request: FixtureRequest,
+) -> Callable[[PageType, RegisterUserDTO | None], Awaitable[Any]]:
+    """фабрика для создания страниц с разными ролями"""
+
+    async def _make_page(
+        page_type: PageType,
+        user: RegisterUserDTO | None = None,
+    ):
+        if user is None:
+            # гостевая страница
+            guest_context = await _create_guest_context(session_browser)
+            base_page = await guest_context.new_page()
+            _setup_console_logging(base_page)
+            # сохраняем ссылку на страницу для прикрепления артефактов и закрытия
+            request.node._active_page = base_page
+            request.node._active_context = guest_context
+        else:
+            # авторизованная страница
+            auth_context = await make_authenticated_context(user)
+            base_page = await auth_context.new_page()
+            _setup_console_logging(base_page)
+            request.node._active_page = base_page
+            request.node._active_context = auth_context
+
+        return _create_page_instance(page_type, base_page)
+
+    return _make_page
+
+
+@pytest.fixture(scope="session")
+def session_api_client() -> ApiClient:
     settings = get_settings()
-    ctx = await session_browser.new_context()
-    ctx.set_default_timeout(settings.default_timeout_ms)
-    try:
-        yield ctx
-    finally:
-        await ctx.close()
+    client = ApiClient(base_url=settings.api_base_url)
+    yield client
+    client.close()
 
 
-@pytest_asyncio.fixture
-async def authenticated_context(
-    session_browser: Browser,
-    user_api_created: RegisterUserDTO,
-    session_api_client: ApiClient,
-) -> AsyncGenerator[BrowserContext, Any]:
-    ctx = await _create_authenticated_context(session_browser, user_api_created, session_api_client)
-    try:
-        yield ctx
-    finally:
-        await ctx.close()
-
-
-@pytest_asyncio.fixture
-async def admin_authenticated_context(
-    session_browser: Browser,
-    admin_api_created: RegisterUserDTO,
-    session_api_client: ApiClient,
-) -> AsyncGenerator[BrowserContext, Any]:
-    ctx = await _create_authenticated_context(
-        session_browser, admin_api_created, session_api_client
+@pytest.fixture(scope="session")
+def session_sql_client() -> SQLClient:
+    settings = get_settings()
+    client = SQLClient(
+        host=settings.db_host,
+        port=settings.db_port,
+        dbname=settings.db_name,
+        user=settings.db_user,
+        password=settings.db_password.get_secret_value(),
     )
-    try:
-        yield ctx
-    finally:
-        await ctx.close()
-
-
-@pytest_asyncio.fixture
-async def banned_authenticated_context(
-    session_browser: Browser,
-    banned_user_api_created: RegisterUserDTO,
-    session_api_client: ApiClient,
-) -> AsyncGenerator[BrowserContext, Any]:
-    ctx = await _create_authenticated_context(
-        session_browser, banned_user_api_created, session_api_client
-    )
-    try:
-        yield ctx
-    finally:
-        await ctx.close()
-
-
-@pytest_asyncio.fixture
-async def page(context: BrowserContext, request) -> AsyncGenerator[Page, Any]:
-    new_page = await context.new_page()
-    _setup_console_logging(new_page)
-    # сохраняем ссылку на страницу для прикрепления артефактов и закрытия
-    request.node._active_page = new_page
-    try:
-        yield new_page
-    finally:
-        _cleanup_console_logging(new_page)
-        # страница будет закрыта в cleanup_page
-
-
-@pytest_asyncio.fixture
-async def authenticated_page(
-    authenticated_context: BrowserContext,
-    request,
-) -> AsyncGenerator[Page, Any]:
-    new_page = await authenticated_context.new_page()
-    _setup_console_logging(new_page)
-    request.node._active_page = new_page
-    try:
-        yield new_page
-    finally:
-        _cleanup_console_logging(new_page)
-
-
-@pytest_asyncio.fixture
-async def admin_authenticated_page(
-    admin_authenticated_context: BrowserContext,
-    request,
-) -> AsyncGenerator[Page, Any]:
-    new_page = await admin_authenticated_context.new_page()
-    _setup_console_logging(new_page)
-    request.node._active_page = new_page
-    try:
-        yield new_page
-    finally:
-        _cleanup_console_logging(new_page)
-
-
-@pytest_asyncio.fixture
-async def banned_authenticated_page(
-    banned_authenticated_context: BrowserContext,
-    request,
-) -> AsyncGenerator[Page, Any]:
-    new_page = await banned_authenticated_context.new_page()
-    _setup_console_logging(new_page)
-    request.node._active_page = new_page
-    try:
-        yield new_page
-    finally:
-        _cleanup_console_logging(new_page)
+    yield client
+    client.close()
 
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
-def pytest_runtest_makereport(item, call):
+def pytest_runtest_makereport(item, call) -> None:
     """
     сохраняет результат каждой стадии теста (setup/call/teardown) прямо на объекте item.
     если тест упал на стадии call, прикрепляет артефакты (скриншот, DOM, логи)
@@ -281,13 +220,15 @@ def pytest_runtest_makereport(item, call):
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def cleanup_page(request):
+async def cleanup_page(request: FixtureRequest) -> AsyncGenerator[None, Any]:
     """
-    закрывает страницу после выполнения теста
+    закрывает страницу и контекст после выполнения теста
     """
     yield
 
     page = getattr(request.node, "_active_page", None)
+    context = getattr(request.node, "_active_context", None)
+    
     if page is not None:
         try:
             if not page.is_closed():
@@ -295,3 +236,10 @@ async def cleanup_page(request):
         except Exception:
             pass
         request.node._active_page = None
+    
+    if context is not None:
+        try:
+            await context.close()
+        except Exception:
+            pass
+        request.node._active_context = None

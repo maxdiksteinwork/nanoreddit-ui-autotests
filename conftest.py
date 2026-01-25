@@ -10,7 +10,6 @@ ALLURE_DIR = "reports/allure-results"
 
 pytest_plugins = (
     "utils.fixtures.base_ui",
-    "utils.fixtures.pages_ui",
     "utils.fixtures.users_ui",
     "utils.fixtures.posts_ui",
     "utils.fixtures.admin_ui",

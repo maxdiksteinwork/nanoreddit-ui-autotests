@@ -35,6 +35,10 @@ class BasePage:
         with allure.step(f'Reloading page "{self.page.url}"'):
             return await self.page.reload(wait_until="load")
 
+    async def wait_for_path(self, path: str) -> None:
+        pattern = f"**/{path.lstrip('/')}"
+        await self.page.wait_for_url(pattern)
+
     async def should_have_url(self, expected_fragment: str) -> None:
         with allure.step(f'Ensure current URL contains "{expected_fragment}"'):
             pattern = re.compile(f".*{re.escape(expected_fragment)}.*")
